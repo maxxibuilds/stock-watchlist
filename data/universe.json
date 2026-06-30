@@ -1,0 +1,35 @@
+{
+  "ver": 1,
+  "cn": {
+    "NVDA":"英伟达","AMD":"AMD","AVGO":"博通","TSM":"台积电","ASML":"阿斯麦","MU":"美光","INTC":"英特尔","QCOM":"高通","TXN":"德州仪器","AMAT":"应用材料","LRCX":"泛林","KLAC":"科磊","MRVL":"迈威尔","ARM":"安谋","SMCI":"超微电脑","ADI":"亚德诺","MCHP":"微芯","NXPI":"恩智浦","ON":"安森美","MPWR":"芯源系统","TER":"泰瑞达","SWKS":"思佳讯","QRVO":"Qorvo","GFS":"格芯","ENTG":"恩特格里斯",
+    "MSFT":"微软","ORCL":"甲骨文","CRM":"Salesforce","ADBE":"Adobe","SAP":"SAP","NOW":"ServiceNow","INTU":"Intuit","PANW":"Palo Alto","CRWD":"CrowdStrike","PLTR":"Palantir","SNOW":"Snowflake","DDOG":"Datadog","NET":"Cloudflare","FTNT":"Fortinet","ZS":"Zscaler","MDB":"MongoDB","TEAM":"Atlassian","WDAY":"Workday","ADSK":"Autodesk","SNPS":"新思","CDNS":"Cadence","ANSS":"Ansys","HUBS":"HubSpot","DOCU":"DocuSign","APP":"AppLovin","MSTR":"Strategy",
+    "GOOGL":"谷歌","META":"Meta","AMZN":"亚马逊","NFLX":"奈飞","UBER":"优步","ABNB":"爱彼迎","BKNG":"Booking","DASH":"DoorDash","SPOT":"Spotify","RBLX":"Roblox","PINS":"Pinterest","SNAP":"Snap","RDDT":"Reddit","TTD":"The Trade Desk","ROKU":"Roku","EA":"艺电","TTWO":"Take-Two","MTCH":"Match","PDD":"拼多多","BABA":"阿里巴巴","SE":"Sea","MELI":"美客多","BIDU":"百度","JD":"京东","NTES":"网易",
+    "AAPL":"苹果","DELL":"戴尔","HPQ":"惠普","HPE":"慧与","ANET":"Arista","CSCO":"思科","JNPR":"瞻博","NTAP":"NetApp","STX":"希捷","WDC":"西部数据","GLW":"康宁","KEYS":"是德","APH":"安费诺","TEL":"泰科电子","ZBRA":"斑马技术",
+    "TSLA":"特斯拉","F":"福特","GM":"通用汽车","RIVN":"Rivian","LCID":"Lucid","STLA":"Stellantis","TM":"丰田","RACE":"法拉利","NIO":"蔚来","LI":"理想","XPEV":"小鹏",
+    "LLY":"礼来","UNH":"联合健康","JNJ":"强生","ABBV":"艾伯维","MRK":"默克","PFE":"辉瑞","TMO":"赛默飞","ABT":"雅培","DHR":"丹纳赫","AMGN":"安进","ISRG":"直觉外科","NVO":"诺和诺德","BMY":"百时美施贵宝","GILD":"吉利德","VRTX":"福泰","REGN":"再生元","MDT":"美敦力","CI":"信诺","ELV":"Elevance","CVS":"CVS","HCA":"HCA医疗","ZTS":"硕腾","SYK":"史赛克","BSX":"波士顿科学","BDX":"BD","MRNA":"Moderna","DXCM":"德康","EW":"爱德华兹","GEHC":"GE医疗","MCK":"麦克森",
+    "JPM":"摩根大通","BAC":"美国银行","WFC":"富国银行","GS":"高盛","MS":"摩根士丹利","C":"花旗","USB":"美国合众","PNC":"PNC","SCHW":"嘉信理财","BLK":"贝莱德","BX":"黑石","KKR":"KKR","AXP":"美国运通","COF":"第一资本","BK":"纽约梅隆","MET":"大都会人寿","PRU":"保德信","AIG":"AIG","TRV":"旅行者","CB":"丘博保险","PGR":"前进保险","ALL":"好事达","MMC":"威达信","ICE":"洲际交易所","CME":"芝商所","SPGI":"标普全球","MCO":"穆迪",
+    "V":"Visa","MA":"万事达","PYPL":"PayPal","FI":"Fiserv","GPN":"环汇","COIN":"Coinbase","HOOD":"Robinhood","SOFI":"SoFi","AFRM":"Affirm","NU":"Nubank","XYZ":"Block","FOUR":"Shift4",
+    "PG":"宝洁","KO":"可口可乐","PEP":"百事","COST":"好市多","WMT":"沃尔玛","PM":"菲利普莫里斯","MO":"奥驰亚","MDLZ":"亿滋","CL":"高露洁","KMB":"金佰利","GIS":"通用磨坊","KHC":"卡夫亨氏","STZ":"星座品牌","KDP":"Keurig","HSY":"好时","KR":"克罗格","SYY":"西斯科","ADM":"ADM","MNST":"怪兽饮料","CLX":"高乐氏",
+    "HD":"家得宝","LOW":"劳氏","NKE":"耐克","MCD":"麦当劳","SBUX":"星巴克","TJX":"TJX","ROST":"罗斯","LULU":"露露乐蒙","CMG":"墨式烧烤","ORLY":"奥莱利","AZO":"AutoZone","YUM":"百胜餐饮","MAR":"万豪","HLT":"希尔顿","DG":"美元树折扣","DLTR":"美元树","EBAY":"eBay","DPZ":"达美乐",
+    "XOM":"埃克森美孚","CVX":"雪佛龙","COP":"康菲","SLB":"斯伦贝谢","EOG":"EOG能源","MPC":"马拉松石油","PSX":"菲利普斯66","VLO":"瓦莱罗","OXY":"西方石油","WMB":"威廉姆斯","KMI":"金德摩根","OKE":"ONEOK","HES":"赫斯","DVN":"戴文能源","FANG":"Diamondback","HAL":"哈里伯顿","BKR":"贝克休斯","LNG":"Cheniere","TRGP":"Targa","CTRA":"Coterra",
+    "BA":"波音","CAT":"卡特彼勒","GE":"通用电气","HON":"霍尼韦尔","RTX":"雷神","LMT":"洛克希德马丁","NOC":"诺斯罗普","GD":"通用动力","DE":"迪尔","UPS":"UPS","FDX":"联邦快递","UNP":"联合太平洋","CSX":"CSX","NSC":"诺福克南方","MMM":"3M","EMR":"艾默生","ETN":"伊顿","ITW":"伊利诺伊工具","PH":"派克汉尼汾","GEV":"GE Vernova","PCAR":"帕卡","CMI":"康明斯","WM":"WM","LHX":"L3Harris","TDG":"TransDigm",
+    "NEE":"新纪元能源","DUK":"杜克能源","SO":"南方电力","D":"道明尼","AEP":"美国电力","EXC":"爱克斯龙","SRE":"桑普拉","LIN":"林德","APD":"空气化工","SHW":"宣伟","FCX":"自由港","NEM":"纽蒙特","NUE":"纽柯钢铁","DOW":"陶氏","ECL":"艺康","PLD":"安博","AMT":"美国电塔","EQIX":"Equinix","CCI":"冠城国际","PSA":"公共存储","O":"Realty Income","SPG":"西蒙地产",
+    "SPY":"标普500","QQQ":"纳指100","DIA":"道指"
+  },
+  "sectors": [
+    {"id":"mega","name":"七巨头+","syms":["AAPL","MSFT","GOOGL","AMZN","META","NVDA","TSLA","AVGO","NFLX","ORCL"]},
+    {"id":"semi","name":"半导体","syms":["NVDA","AMD","AVGO","TSM","ASML","MU","INTC","QCOM","TXN","AMAT","LRCX","KLAC","MRVL","ARM","SMCI","ADI","MCHP","NXPI","ON","MPWR","TER","SWKS","QRVO","GFS","ENTG"]},
+    {"id":"software","name":"软件/SaaS","syms":["MSFT","ORCL","CRM","ADBE","SAP","NOW","INTU","PANW","CRWD","PLTR","SNOW","DDOG","NET","FTNT","ZS","MDB","TEAM","WDAY","ADSK","SNPS","CDNS","HUBS","DOCU","APP","MSTR"]},
+    {"id":"internet","name":"互联网","syms":["GOOGL","META","AMZN","NFLX","UBER","ABNB","BKNG","DASH","SPOT","RBLX","PINS","SNAP","RDDT","TTD","ROKU","EA","TTWO","MTCH","PDD","BABA","SE","MELI","BIDU","JD","NTES"]},
+    {"id":"hardware","name":"硬件/网络","syms":["AAPL","DELL","HPQ","HPE","ANET","CSCO","NTAP","STX","WDC","GLW","KEYS","APH","TEL","ZBRA"]},
+    {"id":"auto","name":"汽车/EV","syms":["TSLA","F","GM","RIVN","LCID","STLA","TM","RACE","NIO","LI","XPEV"]},
+    {"id":"health","name":"医疗健康","syms":["LLY","UNH","JNJ","ABBV","MRK","PFE","TMO","ABT","DHR","AMGN","ISRG","NVO","BMY","GILD","VRTX","REGN","MDT","CI","ELV","CVS","HCA","ZTS","SYK","BSX","BDX","MRNA","DXCM","EW","GEHC","MCK"]},
+    {"id":"fin","name":"金融","syms":["JPM","BAC","WFC","GS","MS","C","USB","PNC","SCHW","BLK","BX","KKR","AXP","COF","BK","MET","PRU","AIG","TRV","CB","PGR","ALL","MMC","ICE","CME","SPGI","MCO"]},
+    {"id":"pay","name":"支付/金融科技","syms":["V","MA","PYPL","FI","GPN","COIN","HOOD","SOFI","AFRM","NU","XYZ","FOUR"]},
+    {"id":"staples","name":"必需消费","syms":["PG","KO","PEP","COST","WMT","PM","MO","MDLZ","CL","KMB","GIS","KHC","STZ","KDP","HSY","KR","SYY","ADM","MNST","CLX"]},
+    {"id":"discretionary","name":"可选消费","syms":["HD","LOW","NKE","MCD","SBUX","TJX","ROST","LULU","CMG","ORLY","AZO","YUM","MAR","HLT","DG","DLTR","EBAY","DPZ"]},
+    {"id":"energy","name":"能源","syms":["XOM","CVX","COP","SLB","EOG","MPC","PSX","VLO","OXY","WMB","KMI","OKE","DVN","FANG","HAL","BKR","LNG","TRGP","CTRA"]},
+    {"id":"industrial","name":"工业/国防","syms":["BA","CAT","GE","HON","RTX","LMT","NOC","GD","DE","UPS","FDX","UNP","CSX","NSC","MMM","EMR","ETN","ITW","PH","GEV","PCAR","CMI","WM","LHX","TDG"]},
+    {"id":"util","name":"公用/材料/地产","syms":["NEE","DUK","SO","D","AEP","EXC","SRE","LIN","APD","SHW","FCX","NEM","NUE","DOW","ECL","PLD","AMT","EQIX","CCI","PSA","O","SPG"]}
+  ]
+}

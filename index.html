@@ -40,6 +40,14 @@
   main{max-width:1360px;margin:0 auto;padding:18px 18px 80px}
   .banner{margin:0 4px 16px;padding:12px 16px;border-radius:12px;font-size:13.5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(255,180,84,.12);border:1px solid rgba(255,180,84,.4);color:#ffd9a0}
   .banner .btn{margin-left:auto}
+  .onboard{margin:0 4px 18px;padding:22px 24px;border-radius:16px;background:var(--card);border:1px solid var(--card-bd);backdrop-filter:blur(8px)}
+  .onboard .ob-title{font-size:18px;font-weight:700;margin-bottom:8px}
+  .onboard .ob-text{color:var(--txt-dim);font-size:13.5px;line-height:1.65;margin-bottom:16px} .onboard .ob-text b{color:var(--txt)}
+  .onboard ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+  .onboard li{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px}
+  .onboard input{background:rgba(10,14,26,.55);border:1px solid var(--card-bd);color:var(--txt);padding:9px 12px;border-radius:9px;font-size:13px;font-family:var(--mono);width:280px}
+  .onboard input:focus{outline:none;border-color:var(--accent)}
+  .onboard .ob-safe{margin-top:14px;font-size:12px;color:var(--txt-dim)}
   .summary{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:0 6px 14px;padding:14px 18px;background:var(--card);border:1px solid var(--card-bd);border-radius:14px;backdrop-filter:blur(8px)}
   .summary .big{font-size:20px;font-weight:700}
   .summary .kv{display:flex;flex-direction:column;gap:2px}
@@ -285,8 +293,19 @@ function renderTools(){ const sec=activeSector();
   $("#secttools").innerHTML=`<button class="iconbtn" data-act="rename">✎ 重命名板块</button><button class="iconbtn danger" data-act="delsec">🗑 删除板块</button>`+
     `<span class="muted" style="margin-left:auto;font-size:12px">共 ${state.sectors.reduce((a,s)=>a+s.syms.length,0)} 只${MKTdate?" · 趋势数据 "+MKTdate:""}</span>`; }
 function renderBanner(){ const b=$("#banner");
-  if(!state.settings.key){ b.innerHTML=`<div class="banner">⚠ 还没配置 Finnhub Key（免费，仅用于实时价格），配置后才有报价。<button class="btn primary" id="bnSet">配置</button></div>`; $("#bnSet").onclick=openSettings; }
-  else b.innerHTML=""; }
+  if(!state.settings.key){
+    b.innerHTML=`<div class="onboard">
+      <div class="ob-title">👋 欢迎使用自选股看板</div>
+      <div class="ob-text">看<b>实时</b>美股报价需要一个 <b>免费的 Finnhub Key</b>（60 次/分钟，个人用足够）。趋势图和涨跌幅是现成的，填了 key 就有实时价格。</div>
+      <ol>
+        <li><a class="btn primary" href="https://finnhub.io/register" target="_blank">① 免费注册拿 Key（约 30 秒）↗</a></li>
+        <li>② 粘贴到这里：<input id="obKey" placeholder="粘贴 Finnhub key…" autocomplete="off" spellcheck="false"> <button class="btn primary" id="obGo">开始 →</button></li>
+      </ol>
+      <div class="ob-safe">🔒 你的 key 只保存在<b>你这台设备的浏览器</b>里，不会上传、不进网站源码，别人看不到。</div>
+    </div>`;
+    const go=()=>{ const k=$("#obKey").value.trim(); if(!k)return; state.settings.key=k; saveState(); setupTimer(); renderAll(); loadIndices(); loadSector(activeSector()); };
+    $("#obGo").onclick=go; $("#obKey").addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
+  } else b.innerHTML=""; }
 function renderUpdated(){ const t=state.settings._ts?new Date(state.settings._ts).toLocaleTimeString("zh-CN",{hour12:false}):"—";
   $("#updated").innerHTML=state.settings.key?`${rateLimited?'<span style="color:var(--warn)">限流· </span>':''}自动刷新 · 更新 ${t}`:""; }
 function renderAll(){ renderTabs(); renderTools(); renderBanner(); renderSummary(); renderTable(); renderUpdated(); }

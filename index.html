@@ -394,7 +394,7 @@ function render(){
       const d = data[sym] || {};
       const tr = document.createElement("tr");
       tr.innerHTML =
-        `<td class="sym"><span class="x" data-act="del" data-cat="${cat.id}" data-sym="${sym}" title="移除">✕</span>${sym}</td>`+
+        `<td class="sym"><span class="x" data-act="del" data-cat="${cat.id}" data-sym="${esc(sym)}" title="移除">✕</span>${esc(sym)}</td>`+
         `<td class="name">${esc(d.name||KNOWN_NAMES[sym]||"")}</td>`+
         `<td class="num">${fmtPrice(d.price)}</td>`+
         cellPct(d.today, true)+
@@ -532,7 +532,7 @@ $("#board").addEventListener("click",(e)=>{
 $("#board").addEventListener("keydown",(e)=>{
   if(e.target.tagName==="INPUT" && e.key==="Enter"){
     const cat=e.target.dataset.cat;
-    const sym=e.target.value.trim().toUpperCase();
+    const sym=e.target.value.trim().toUpperCase().replace(/[^A-Z0-9.\-]/g,"");
     e.target.value="";
     if(!sym) return;
     const c=state.categories.find(x=>x.id===cat);

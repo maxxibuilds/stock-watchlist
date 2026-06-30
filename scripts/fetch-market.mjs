@@ -54,7 +54,7 @@ function computeReturns(pts) {
   for (let i = last; i >= 0; i--) { const dt = new Date(pts[i].t); if (dt.getUTCFullYear() < year || dt.getUTCMonth() < month) { mtdBase = i; break; } }
   if (mtdBase < 0) mtdBase = pts.findIndex(p => { const dt = new Date(p.t); return dt.getUTCFullYear() === year && dt.getUTCMonth() === month; });
   // 3 月：约 91 天前最近的交易日
-  const target = pts[last].t - 91 * 86400000;
+  const target = pts[last].t - 90 * 86400000;
   let q3Base = 0; for (let i = 0; i < pts.length; i++) { if (pts[i].t <= target) q3Base = i; else break; }
   return {
     ytd: pctFrom(pts, ytdBase, last),

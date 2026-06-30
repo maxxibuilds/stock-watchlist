@@ -131,11 +131,6 @@
     <div class="tablescroll"><table id="table"></table></div>
     <div class="secttools" id="secttools"></div>
   </div>
-  <div class="legend">
-    <span><b>趋势</b> 近6月日线</span><span><b>今日</b> 当日%(实时)</span><span><b>本月</b> 月初至今</span>
-    <span><b>3月</b> 近13周</span><span><b>YTD</b> 年初至今</span><span><b>PE</b> 市盈率TTM</span>
-    <span class="muted">点表头排序 · 趋势/涨跌幅每日更新，价格/今日实时 · 仅供参考</span>
-  </div>
 </main>
 <div class="modal-bg" id="modal">
   <div class="modal">
@@ -147,7 +142,6 @@
       <div class="hint">没有就去 <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a> 免费拿（60次/分钟）。</div>
     </div>
     <div class="field"><label>自动刷新间隔（秒）</label><input type="number" id="intervalInput" min="10" step="5" value="60"></div>
-    <div class="field"><label>外观主题 · 点一下实时换肤</label><div class="themes" id="themeGrid"></div><div class="swname" id="swName"></div></div>
     <div class="modal-foot"><button class="btn ghost" id="closeSettings">取消</button><button class="btn primary" id="saveSettings">保存</button></div>
   </div>
 </div>
@@ -274,7 +268,7 @@ function sparkSVG(c){
 
 /* ---------- 渲染 ---------- */
 const COLS=[{k:"sym",t:"代码",l:1,sort:1},{k:"name",t:"名称",l:1,nos:1},{k:"spark",t:"趋势",c:1,nos:1},
- {k:"price",t:"价格",sort:1},{k:"today",t:"今日",sort:1},{k:"mtd",t:"本月",sort:1},{k:"q3m",t:"3月",sort:1},{k:"ytd",t:"YTD",sort:1},{k:"pe",t:"PE",sort:1}];
+ {k:"price",t:"价格",sort:1},{k:"today",t:"今日",sort:1},{k:"mtd",t:"本月",sort:1},{k:"q3m",t:"近90天",sort:1},{k:"ytd",t:"YTD",sort:1},{k:"pe",t:"PE",sort:1}];
 function rowVal(s,k){ if(k==="sym")return s; if(k==="price"||k==="today")return(qdata[s]||{})[k]; if(k==="pe")return pe(s); if(k==="mtd"||k==="q3m"||k==="ytd")return ret(s,k); return null; }
 function visibleSyms(sec){
   let a=sec.syms.slice();
@@ -329,9 +323,8 @@ function renderTable(){
   body+=`<tr class="addrow"><td colspan="${COLS.length}"><input id="addSym" placeholder="加美股代码 (如 GME) ↵"></td></tr></tbody>`;
   tb.innerHTML=head+body;
 }
-function renderTools(){ const sec=activeSector();
-  $("#secttools").innerHTML=`<button class="iconbtn" data-act="rename">✎ 重命名板块</button><button class="iconbtn danger" data-act="delsec">🗑 删除板块</button>`+
-    `<span class="muted" style="margin-left:auto;font-size:12px">共 ${state.sectors.reduce((a,s)=>a+s.syms.length,0)} 只${MKTdate?" · 趋势数据 "+MKTdate:""}</span>`; }
+function renderTools(){
+  $("#secttools").innerHTML=`<span class="muted" style="font-size:12px">共 ${state.sectors.reduce((a,s)=>a+s.syms.length,0)} 只${MKTdate?" · 趋势数据 "+MKTdate:""}</span>`; }
 function renderBanner(){ const b=$("#banner");
   if(!state.settings.key){
     b.innerHTML=`<div class="onboard">
@@ -352,12 +345,8 @@ function renderAll(){ renderTabs(); renderTools(); renderBanner(); renderSummary
 function setDot(s){ $("#dot").className="dot "+(s==="ok"?"ok":s==="load"?"load":s==="err"?"err":""); renderUpdated(); }
 
 /* ---------- 交互 ---------- */
-function openSettings(){ $("#keyInput").value=state.settings.key||""; $("#intervalInput").value=state.settings.intervalSec||60; $("#keyOk").textContent=state.settings.key?"✓ 已配置":""; buildThemes(); $("#modal").classList.add("show"); }
+function openSettings(){ $("#keyInput").value=state.settings.key||""; $("#intervalInput").value=state.settings.intervalSec||60; $("#keyOk").textContent=state.settings.key?"✓ 已配置":""; $("#modal").classList.add("show"); }
 function closeSettings(){ $("#modal").classList.remove("show"); }
-$("#themeGrid").addEventListener("click",e=>{ const b=e.target.closest(".sw"); if(!b)return; const id=b.dataset.id;
-  state.settings.theme=id; saveState(); applyTheme(id);
-  document.querySelectorAll("#themeGrid .sw").forEach(x=>x.classList.toggle("on",x.dataset.id===id));
-  const c=THEMES.find(x=>x.id===id); $("#swName").textContent="当前："+(c?c.name:"—"); });
 $("#settingsBtn").onclick=openSettings; $("#closeSettings").onclick=closeSettings; $("#modal").onclick=e=>{if(e.target.id==="modal")closeSettings();};
 $("#saveSettings").onclick=()=>{ state.settings.key=$("#keyInput").value.trim(); state.settings.intervalSec=Math.max(10,parseInt($("#intervalInput").value)||60);
   saveState(); closeSettings(); setupTimer(); renderAll(); if(state.settings.key){ loadIndices(); loadSector(activeSector()); } };
@@ -371,9 +360,6 @@ $("#table").addEventListener("click",e=>{
 $("#table").addEventListener("keydown",e=>{ if(e.target.id==="addSym"&&e.key==="Enter"){ const s=e.target.value.trim().toUpperCase().replace(/[^A-Z0-9.\-]/g,""); e.target.value="";
   if(!s)return; const sec=activeSector(); if(!sec.syms.includes(s)){ sec.syms.push(s); saveState(); renderTabs(); renderTools(); renderTable();
     if(state.settings.key){ loadQuote(s).then(()=>{renderSummary();renderTable();bgMeta([s],activeLoad);}).catch(()=>renderTable()); } } } });
-$("#secttools").addEventListener("click",e=>{ const act=e.target.dataset.act,sec=activeSector();
-  if(act==="rename"){ const n=prompt("重命名板块：",sec.name); if(n){sec.name=n.trim();saveState();renderTabs();} }
-  if(act==="delsec"){ if(state.sectors.length<=1){alert("至少保留一个板块");return;} if(confirm(`删除板块「${sec.name}」？`)){ state.sectors=state.sectors.filter(x=>x.id!==sec.id); state.settings.activeId=state.sectors[0].id; saveState(); renderAll(); loadSector(activeSector()); } } });
 
 /* ---------- 自动刷新（常开）---------- */
 function setupTimer(){ if(timer)clearInterval(timer); if(!state.settings.key)return;
@@ -382,7 +368,6 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&state.se
 
 /* ---------- 启动 ---------- */
 (async()=>{
-  applyTheme(state.settings.theme);
   renderAll();
   await loadData();
   renderAll();

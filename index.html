@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>自选股看板</title>
+<style>
+  :root{
+    --bg0:#0a0e1a; --bg1:#0f1626; --card:rgba(22,30,48,.66); --card-bd:rgba(120,140,180,.14);
+    --txt:#e8edf6; --txt-dim:#8a96ad; --line:rgba(120,140,180,.10);
+    --green:#27d796; --red:#ff5a6a; --flat:#8a96ad; --accent:#4c8dff; --warn:#ffb454;
+    --mono:'SF Mono','JetBrains Mono','Consolas','Roboto Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    color:var(--txt); background:var(--bg0); min-height:100%;
+    background:
+      radial-gradient(1100px 700px at 12% -8%, rgba(76,141,255,.16), transparent 60%),
+      radial-gradient(900px 600px at 96% 4%, rgba(39,215,150,.10), transparent 55%),
+      radial-gradient(900px 800px at 60% 120%, rgba(120,80,255,.10), transparent 60%),
+      linear-gradient(180deg,#0a0e1a,#0b1020 40%,#080b14);
+    background-attachment:fixed;
+  }
+  a{color:var(--accent);text-decoration:none}
+  /* header */
+  header{
+    position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:14px 22px;backdrop-filter:blur(14px);
+    background:linear-gradient(180deg,rgba(10,14,26,.82),rgba(10,14,26,.55));
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:.3px}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+  .brand .dot.off{background:var(--flat);box-shadow:none}
+  .brand .dot.err{background:var(--red);box-shadow:0 0 12px var(--red)}
+  .spacer{flex:1}
+  .status{font-size:12.5px;color:var(--txt-dim);font-variant-numeric:tabular-nums}
+  .status b{color:var(--txt)}
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;
+    border:1px solid var(--card-bd);background:rgba(40,52,80,.5);color:var(--txt);
+    padding:7px 12px;border-radius:9px;font-size:13px;transition:.15s;
+  }
+  .btn:hover{background:rgba(60,80,120,.6);border-color:rgba(120,150,200,.3)}
+  .btn.primary{background:var(--accent);border-color:transparent;color:#fff;font-weight:600}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent}
+  .switch{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--txt-dim);cursor:pointer}
+  .switch input{display:none}
+  .switch .track{width:38px;height:21px;border-radius:20px;background:rgba(90,105,140,.4);position:relative;transition:.2s}
+  .switch .track::after{content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:#fff;transition:.2s}
+  .switch input:checked + .track{background:var(--green)}
+  .switch input:checked + .track::after{transform:translateX(17px)}
+  /* main */
+  main{max-width:1280px;margin:0 auto;padding:22px 18px 80px}
+  .banner{
+    margin:0 4px 18px;padding:12px 16px;border-radius:12px;font-size:13.5px;
+    background:rgba(255,180,84,.12);border:1px solid rgba(255,180,84,.4);color:#ffd9a0;
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .banner.err{background:rgba(255,90,106,.12);border-color:rgba(255,90,106,.4);color:#ffc1c8}
+  .banner .btn{margin-left:auto}
+  .cat{margin:0 4px 22px;background:var(--card);border:1px solid var(--card-bd);border-radius:16px;overflow:hidden;backdrop-filter:blur(8px)}
+  .cat-head{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
+  .cat-title{font-size:15.5px;font-weight:700;letter-spacing:.3px;cursor:text;outline:none;border-radius:6px;padding:2px 4px}
+  .cat-title:focus{background:rgba(76,141,255,.15)}
+  .cat-count{font-size:12px;color:var(--txt-dim);background:rgba(120,140,180,.12);padding:2px 8px;border-radius:20px}
+  .cat-head .tools{margin-left:auto;display:flex;gap:6px;align-items:center}
+  .iconbtn{cursor:pointer;color:var(--txt-dim);border:1px solid transparent;background:transparent;border-radius:7px;padding:5px 8px;font-size:13px}
+  .iconbtn:hover{color:var(--txt);background:rgba(120,140,180,.12)}
+  .iconbtn.danger:hover{color:var(--red);background:rgba(255,90,106,.12)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  thead th{
+    text-align:right;font-weight:600;font-size:11.5px;letter-spacing:.4px;color:var(--txt-dim);
+    text-transform:uppercase;padding:9px 14px;cursor:pointer;white-space:nowrap;user-select:none;
+    border-bottom:1px solid var(--line);
+  }
+  thead th:first-child,tbody td:first-child{text-align:left}
+  thead th.name,tbody td.name{text-align:left}
+  thead th:hover{color:var(--txt)}
+  thead th .arrow{opacity:.5;font-size:10px;margin-left:3px}
+  tbody td{padding:11px 14px;text-align:right;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:rgba(120,140,180,.05)}
+  .sym{font-weight:700;font-family:var(--mono);font-size:14px}
+  .sym .x{visibility:hidden;color:var(--txt-dim);cursor:pointer;margin-right:8px;font-size:13px}
+  tbody tr:hover .sym .x{visibility:visible}
+  .sym .x:hover{color:var(--red)}
+  td.name{color:var(--txt-dim);max-width:210px;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+  .num{font-family:var(--mono)}
+  .pos{color:var(--green)} .neg{color:var(--red)} .flat{color:var(--flat)}
+  body.red-up .pos{color:var(--red)} body.red-up .neg{color:var(--green)}
+  .pill{display:inline-block;min-width:62px;padding:3px 9px;border-radius:7px;font-family:var(--mono);font-size:13px;font-weight:600}
+  .pill.pos{background:rgba(39,215,150,.13)} .pill.neg{background:rgba(255,90,106,.13)} .pill.flat{background:rgba(138,150,173,.12)}
+  body.red-up .pill.pos{background:rgba(255,90,106,.13)} body.red-up .pill.neg{background:rgba(39,215,150,.13)}
+  .addrow td{padding:10px 14px}
+  .addrow input{
+    background:rgba(10,14,26,.5);border:1px solid var(--card-bd);color:var(--txt);
+    padding:7px 11px;border-radius:8px;font-size:13px;width:150px;font-family:var(--mono);text-transform:uppercase;
+  }
+  .addrow input:focus{outline:none;border-color:var(--accent)}
+  .addcat{display:flex;justify-content:center;margin-top:6px}
+  /* modal */
+  .modal-bg{position:fixed;inset:0;z-index:50;background:rgba(5,8,16,.66);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+  .modal-bg.show{display:flex}
+  .modal{width:460px;max-width:100%;background:#121a2c;border:1px solid var(--card-bd);border-radius:16px;padding:22px 24px;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+  .modal h2{margin:0 0 4px;font-size:18px}
+  .modal p.sub{margin:0 0 18px;color:var(--txt-dim);font-size:13px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:12.5px;color:var(--txt-dim);margin-bottom:7px}
+  .field input[type=text],.field input[type=password],.field input[type=number]{
+    width:100%;background:rgba(10,14,26,.6);border:1px solid var(--card-bd);color:var(--txt);
+    padding:10px 12px;border-radius:9px;font-size:14px;font-family:var(--mono);
+  }
+  .field input:focus{outline:none;border-color:var(--accent)}
+  .field .hint{font-size:12px;color:var(--txt-dim);margin-top:6px}
+  .modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+  .seg{display:inline-flex;border:1px solid var(--card-bd);border-radius:9px;overflow:hidden}
+  .seg button{background:transparent;border:none;color:var(--txt-dim);padding:8px 14px;cursor:pointer;font-size:13px}
+  .seg button.on{background:var(--accent);color:#fff}
+  .muted{color:var(--txt-dim);font-size:12px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--txt-dim);margin:0 6px 16px}
+  .legend b{color:var(--txt)}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span class="dot off" id="liveDot"></span> 自选股看板</div>
+  <div class="status" id="status">未连接</div>
+  <div class="spacer"></div>
+  <label class="switch" title="自动刷新（打开页面 / 切回标签页时自动刷新）">
+    <input type="checkbox" id="autoToggle" checked><span class="track"></span><span>自动刷新</span>
+  </label>
+  <button class="btn" id="refreshBtn">↻ 刷新</button>
+  <button class="btn ghost" id="settingsBtn">⚙ 设置</button>
+</header>
+
+<main>
+  <div id="banners"></div>
+  <div class="legend">
+    <span><b>今日</b> 当日涨跌%</span>
+    <span><b>本月</b> 月初至今 MTD%</span>
+    <span><b>3月</b> 近13周%</span>
+    <span><b>YTD</b> 年初至今%</span>
+    <span><b>PE</b> 市盈率(TTM)</span>
+    <span class="muted">数据：Finnhub · 仅供参考</span>
+  </div>
+  <div id="board"></div>
+  <div class="addcat"><button class="btn" id="addCatBtn">＋ 新建分类</button></div>
+</main>
+
+<!-- settings modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2>设置</h2>
+    <p class="sub">配置只保存在你这台电脑的浏览器里（localStorage），不会上传。</p>
+    <div class="field">
+      <label>Finnhub API Key</label>
+      <input type="text" id="keyInput" placeholder="粘贴你的 Finnhub key…" autocomplete="off" spellcheck="false">
+      <div class="hint">没有 key？去 <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a> 免费注册，几十秒拿到（免费档 60 次/分钟）。</div>
+    </div>
+    <div class="field">
+      <label>自动刷新间隔（秒）</label>
+      <input type="number" id="intervalInput" min="10" step="5" value="60">
+      <div class="hint">只在美股交易时间内频繁刷新有意义；间隔太短容易触发限流。</div>
+    </div>
+    <div class="field">
+      <label>涨跌颜色</label>
+      <div class="seg" id="colorSeg">
+        <button data-v="green">绿涨红跌（美股惯例）</button>
+        <button data-v="red">红涨绿跌（A股惯例）</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="closeSettings">取消</button>
+      <button class="btn primary" id="saveSettings">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================ 配置 / 状态 ============================ */
+const API = "https://finnhub.io/api/v1";
+const LS = {
+  state: "sb_state_v1",
+  data:  "sb_data_v1",
+  metric:(s)=>"sb_m_"+s,
+  prof:  (s)=>"sb_p_"+s,
+};
+
+const DEFAULT_STATE = {
+  settings: { key:"", intervalSec:60, redUp:false },
+  categories: [
+    { id:"c1", name:"半导体", symbols:["NVDA","AMD","TSM","AVGO","ASML","MU"] },
+    { id:"c2", name:"医疗健康", symbols:["LLY","UNH","JNJ","MRK","ISRG"] },
+    { id:"c3", name:"大型科技", symbols:["AAPL","MSFT","GOOGL","AMZN","META","TSLA"] },
+  ],
+};
+
+// 已知公司名（省去首屏 profile 请求；其它会按需懒加载）
+const KNOWN_NAMES = {
+  NVDA:"英伟达", AMD:"AMD", TSM:"台积电", AVGO:"博通", ASML:"阿斯麦", MU:"美光",
+  LLY:"礼来", UNH:"联合健康", JNJ:"强生", MRK:"默克", ISRG:"直觉外科",
+  AAPL:"苹果", MSFT:"微软", GOOGL:"谷歌", AMZN:"亚马逊", META:"Meta", TSLA:"特斯拉",
+};
+
+let state = loadState();
+let data = loadJSON(LS.data) || {};       // { SYM: {price, today, mtd, q3m, ytd, pe, name, err, ts} }
+let sortBy = {};                          // { catId: {key, dir} }
+let timer = null;
+let rateLimited = false;
+let inflight = false;
+
+function loadState(){
+  const s = loadJSON(LS.state);
+  if(!s) return structuredClone(DEFAULT_STATE);
+  // 合并默认 settings，避免老数据缺字段
+  s.settings = Object.assign({}, DEFAULT_STATE.settings, s.settings||{});
+  if(!Array.isArray(s.categories)) s.categories = structuredClone(DEFAULT_STATE.categories);
+  return s;
+}
+function loadJSON(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+function saveState(){ localStorage.setItem(LS.state, JSON.stringify(state)); }
+function saveData(){ localStorage.setItem(LS.data, JSON.stringify(data)); }
+
+/* ============================ 工具函数 ============================ */
+const $ = (sel,root=document)=>root.querySelector(sel);
+const todayStr = ()=>{ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); };
+const uid = ()=>"c"+Math.floor(performance.now()*1000%1e9).toString(36)+state.categories.length;
+
+function fmtPct(v){ if(v==null||isNaN(v)) return "—"; return (v>=0?"+":"")+v.toFixed(2)+"%"; }
+function fmtPrice(v){ if(v==null||isNaN(v)||v===0) return "—"; return v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtPE(v){ if(v==null||isNaN(v)) return "—"; if(v<0) return "亏损"; return v.toFixed(1); }
+function sgnClass(v){ if(v==null||isNaN(v)||v===0) return "flat"; return v>0?"pos":"neg"; }
+
+function allSymbols(){
+  const set = new Set();
+  state.categories.forEach(c=>c.symbols.forEach(s=>set.add(s)));
+  return [...set];
+}
+
+/* ============================ Finnhub 请求 ============================ */
+async function fh(path){
+  const key = state.settings.key;
+  if(!key) throw new Error("NO_KEY");
+  const url = API + path + (path.includes("?")?"&":"?") + "token=" + encodeURIComponent(key);
+  const res = await fetch(url);
+  if(res.status===429){ const e=new Error("RATE"); e.rate=true; throw e; }
+  if(res.status===401||res.status===403){ const e=new Error("AUTH"); e.auth=true; throw e; }
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  return res.json();
+}
+
+function cachedMetric(sym){
+  const o = loadJSON(LS.metric(sym));
+  return (o && o.d===todayStr()) ? o.v : null;   // 每日缓存
+}
+function saveMetric(sym,v){ localStorage.setItem(LS.metric(sym), JSON.stringify({d:todayStr(),v})); }
+
+function cachedProfile(sym){ return loadJSON(LS.prof(sym)); }   // 永久缓存
+function saveProfile(sym,v){ localStorage.setItem(LS.prof(sym), JSON.stringify(v)); }
+
+function pick(o, keys){ for(const k of keys){ if(o && o[k]!=null && !isNaN(o[k])) return o[k]; } return null; }
+
+// 拉单只票的报价(+按需 metric)。metric 走每日缓存。
+async function loadSymbol(sym, forceMetric){
+  const cur = data[sym] || (data[sym]={});
+  // 报价（始终实时拉）
+  const q = await fh("/quote?symbol="+encodeURIComponent(sym));
+  if(q && (q.c||q.pc)){
+    cur.price = q.c;
+    cur.today = q.dp;            // 当日涨跌%
+  }else{
+    cur.err = "无效代码?";
+  }
+  // metric：缓存优先
+  let m = forceMetric ? null : cachedMetric(sym);
+  if(!m){
+    const r = await fh("/stock/metric?metric=all&symbol="+encodeURIComponent(sym));
+    m = (r && r.metric) ? r.metric : {};
+    saveMetric(sym, m);
+  }
+  cur.ytd = pick(m, ["yearToDatePriceReturnDaily"]);
+  cur.mtd = pick(m, ["monthToDatePriceReturnDaily"]);
+  cur.q3m = pick(m, ["13WeekPriceReturnDaily"]);
+  cur.pe  = pick(m, ["peTTM","peBasicExclExtraTTM","peNormalizedAnnual","peExclExtraTTM","peAnnual"]);
+  // 名称
+  cur.name = KNOWN_NAMES[sym] || (cachedProfile(sym)||{}).name || cur.name || sym;
+  cur.err = null;
+  cur.ts = Date.now();
+}
+
+// 并发池
+async function pool(items, worker, conc=5){
+  let i=0;
+  async function run(){
+    while(i<items.length){
+      const idx=i++;
+      try{ await worker(items[idx]); }
+      catch(e){
+        if(e.rate){ rateLimited=true; }
+        if(e.auth){ throw e; }
+        (data[items[idx]] = data[items[idx]]||{}).err = "出错";
+      }
+    }
+  }
+  await Promise.all(Array.from({length:Math.min(conc,items.length||1)}, run));
+}
+
+async function refreshAll(forceMetric){
+  const key = state.settings.key;
+  if(!key){ renderBanners(); return; }
+  if(inflight) return;
+  inflight = true; rateLimited=false;
+  setLive("loading");
+  try{
+    const syms = allSymbols();
+    await pool(syms, s=>loadSymbol(s, forceMetric), 5);
+    saveData();
+    state.settings._lastOk = Date.now();
+    setLive(rateLimited ? "rate" : "ok");
+    backgroundLoadNames(syms);   // 懒加载未知公司名
+  }catch(e){
+    setLive(e.auth ? "auth" : "err");
+  }finally{
+    inflight=false;
+    render();
+    renderBanners();
+    updateStatus();
+  }
+}
+
+// 后台慢速补全公司名（不阻塞行情）
+async function backgroundLoadNames(syms){
+  const need = syms.filter(s=>!KNOWN_NAMES[s] && !cachedProfile(s));
+  for(const s of need){
+    try{
+      const p = await fh("/stock/profile2?symbol="+encodeURIComponent(s));
+      if(p && p.name){ saveProfile(s,p); if(data[s]){ data[s].name=p.name; } }
+    }catch(e){ if(e.rate||e.auth) break; }
+    await new Promise(r=>setTimeout(r,400));   // 温柔点，省限额
+  }
+  render();
+}
+
+/* ============================ 渲染 ============================ */
+const COLS = [
+  {key:"sym",   label:"代码",  sortable:true},
+  {key:"name",  label:"名称",  sortable:false, cls:"name"},
+  {key:"price", label:"价格",  sortable:true},
+  {key:"today", label:"今日",  sortable:true, pct:true, pill:true},
+  {key:"mtd",   label:"本月",  sortable:true, pct:true},
+  {key:"q3m",   label:"3月",   sortable:true, pct:true},
+  {key:"ytd",   label:"YTD",   sortable:true, pct:true},
+  {key:"pe",    label:"PE",    sortable:true},
+];
+
+function render(){
+  const board = $("#board");
+  board.innerHTML = "";
+  document.body.classList.toggle("red-up", !!state.settings.redUp);
+
+  state.categories.forEach(cat=>{
+    const card = document.createElement("div");
+    card.className="cat";
+
+    // 头部
+    const head = document.createElement("div");
+    head.className="cat-head";
+    head.innerHTML =
+      `<div class="cat-title" contenteditable="false" data-id="${cat.id}">${esc(cat.name)}</div>`+
+      `<span class="cat-count">${cat.symbols.length}</span>`+
+      `<div class="tools">`+
+        `<button class="iconbtn" data-act="rename" data-id="${cat.id}" title="重命名">✎</button>`+
+        `<button class="iconbtn danger" data-act="delcat" data-id="${cat.id}" title="删除分类">🗑</button>`+
+      `</div>`;
+    card.appendChild(head);
+
+    // 表
+    const table = document.createElement("table");
+    const sb = sortBy[cat.id];
+    table.innerHTML =
+      "<thead><tr>"+ COLS.map(c=>{
+        const arrow = (sb && sb.key===c.key) ? `<span class="arrow">${sb.dir>0?"▲":"▼"}</span>` : "";
+        return `<th class="${c.cls||""}" data-cat="${cat.id}" data-key="${c.sortable?c.key:""}">${c.label}${arrow}</th>`;
+      }).join("") +"</tr></thead>";
+
+    const tbody = document.createElement("tbody");
+    const rows = sortRows(cat.symbols.slice(), sb);
+    rows.forEach(sym=>{
+      const d = data[sym] || {};
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        `<td class="sym"><span class="x" data-act="del" data-cat="${cat.id}" data-sym="${sym}" title="移除">✕</span>${sym}</td>`+
+        `<td class="name">${esc(d.name||KNOWN_NAMES[sym]||"")}</td>`+
+        `<td class="num">${fmtPrice(d.price)}</td>`+
+        cellPct(d.today, true)+
+        cellPct(d.mtd)+
+        cellPct(d.q3m)+
+        cellPct(d.ytd)+
+        `<td class="num flat">${d.err?'<span class="neg">'+esc(d.err)+'</span>':fmtPE(d.pe)}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    // 添加行
+    const addtr = document.createElement("tr");
+    addtr.className="addrow";
+    addtr.innerHTML = `<td colspan="${COLS.length}"><input placeholder="加代码 (如 NFLX) ↵" data-cat="${cat.id}"></td>`;
+    tbody.appendChild(addtr);
+
+    table.appendChild(tbody);
+    card.appendChild(table);
+    board.appendChild(card);
+  });
+}
+
+function cellPct(v, pill){
+  const c = sgnClass(v);
+  if(pill) return `<td><span class="pill ${c}">${fmtPct(v)}</span></td>`;
+  return `<td class="num ${c}">${fmtPct(v)}</td>`;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
+
+function sortRows(syms, sb){
+  if(!sb || !sb.key || sb.key==="sym"){
+    if(sb && sb.key==="sym"){ syms.sort((a,b)=> sb.dir*a.localeCompare(b)); return syms; }
+    return syms;
+  }
+  syms.sort((a,b)=>{
+    const va=(data[a]||{})[sb.key], vb=(data[b]||{})[sb.key];
+    const na=(va==null||isNaN(va)), nb=(vb==null||isNaN(vb));
+    if(na&&nb) return 0; if(na) return 1; if(nb) return -1;
+    return sb.dir*(va-vb);
+  });
+  return syms;
+}
+
+/* ============================ 状态条 / 横幅 ============================ */
+function setLive(s){
+  const dot = $("#liveDot");
+  dot.className = "dot " + (s==="ok"?"":s==="loading"?"":(s==="auth"||s==="err")?"err":s==="rate"?"err":"off");
+  if(s==="loading"){ dot.style.background="var(--warn)"; dot.style.boxShadow="0 0 12px var(--warn)"; }
+  else dot.style.cssText="";
+}
+function updateStatus(){
+  const el=$("#status");
+  if(!state.settings.key){ el.innerHTML='未设置 API Key'; return; }
+  const t = state.settings._lastOk ? new Date(state.settings._lastOk) : null;
+  const hhmmss = t ? t.toLocaleTimeString("zh-CN",{hour12:false}) : "—";
+  const n = allSymbols().length;
+  el.innerHTML = `${rateLimited?'<span style="color:var(--warn)">限流中</span> · ':''}<b>${n}</b> 只 · 更新于 <b>${hhmmss}</b>`;
+}
+function renderBanners(){
+  const box=$("#banners"); box.innerHTML="";
+  if(!state.settings.key){
+    box.innerHTML = `<div class="banner">⚠ 还没填 Finnhub API Key，先去设置里粘贴一个（免费）。<button class="btn primary" onclick="openSettings()">打开设置</button></div>`;
+  }else if(rateLimited){
+    box.innerHTML = `<div class="banner">⏳ 触发了 Finnhub 免费档限流（60次/分钟）。已自动放慢，稍后会恢复；可减少自选数量或把刷新间隔调大。</div>`;
+  }
+}
+
+/* ============================ 交互 ============================ */
+function openSettings(){
+  $("#keyInput").value = state.settings.key||"";
+  $("#intervalInput").value = state.settings.intervalSec||60;
+  setColorSeg(state.settings.redUp?"red":"green");
+  $("#modal").classList.add("show");
+}
+window.openSettings = openSettings;
+function closeSettings(){ $("#modal").classList.remove("show"); }
+function setColorSeg(v){ document.querySelectorAll("#colorSeg button").forEach(b=>b.classList.toggle("on", b.dataset.v===v)); }
+
+document.querySelectorAll("#colorSeg button").forEach(b=>b.onclick=()=>setColorSeg(b.dataset.v));
+$("#settingsBtn").onclick = openSettings;
+$("#closeSettings").onclick = closeSettings;
+$("#modal").onclick = (e)=>{ if(e.target.id==="modal") closeSettings(); };
+$("#saveSettings").onclick = ()=>{
+  state.settings.key = $("#keyInput").value.trim();
+  state.settings.intervalSec = Math.max(10, parseInt($("#intervalInput").value)||60);
+  state.settings.redUp = document.querySelector("#colorSeg button.on")?.dataset.v === "red";
+  saveState();
+  closeSettings();
+  setupTimer();
+  render(); renderBanners(); updateStatus();
+  refreshAll(true);
+};
+
+$("#refreshBtn").onclick = ()=>refreshAll(false);
+$("#autoToggle").onclick = (e)=>{ state.settings.auto = e.target.checked; setupTimer(); };
+
+$("#addCatBtn").onclick = ()=>{
+  const name = prompt("分类名称：","新分类");
+  if(!name) return;
+  state.categories.push({id:uid(), name:name.trim(), symbols:[]});
+  saveState(); render();
+};
+
+// 事件委托：删除/重命名/排序/加票
+$("#board").addEventListener("click",(e)=>{
+  const act = e.target.dataset.act;
+  if(act==="del"){
+    const {cat,sym}=e.target.dataset;
+    const c=state.categories.find(x=>x.id===cat);
+    if(c){ c.symbols=c.symbols.filter(s=>s!==sym); saveState(); render(); updateStatus(); }
+    return;
+  }
+  if(act==="delcat"){
+    const c=state.categories.find(x=>x.id===e.target.dataset.id);
+    if(c && confirm(`删除分类「${c.name}」？`)){ state.categories=state.categories.filter(x=>x.id!==c.id); saveState(); render(); }
+    return;
+  }
+  if(act==="rename"){
+    const c=state.categories.find(x=>x.id===e.target.dataset.id);
+    const name=prompt("重命名分类：",c.name);
+    if(name){ c.name=name.trim(); saveState(); render(); }
+    return;
+  }
+  // 排序
+  const th=e.target.closest("th");
+  if(th && th.dataset.key){
+    const cat=th.dataset.cat, key=th.dataset.key;
+    const cur=sortBy[cat];
+    sortBy[cat] = (cur&&cur.key===key)?{key,dir:-cur.dir}:{key,dir: key==="sym"?1:-1};
+    render();
+  }
+});
+
+// 加票（回车）
+$("#board").addEventListener("keydown",(e)=>{
+  if(e.target.tagName==="INPUT" && e.key==="Enter"){
+    const cat=e.target.dataset.cat;
+    const sym=e.target.value.trim().toUpperCase();
+    e.target.value="";
+    if(!sym) return;
+    const c=state.categories.find(x=>x.id===cat);
+    if(c && !c.symbols.includes(sym)){
+      c.symbols.push(sym); saveState(); render();
+      if(state.settings.key) loadSymbol(sym,true).then(()=>{saveData();render();updateStatus();}).catch(()=>render());
+    }
+  }
+});
+
+/* ============================ 自动刷新 ============================ */
+function setupTimer(){
+  if(timer) clearInterval(timer);
+  const on = $("#autoToggle").checked;
+  if(!on || !state.settings.key) return;
+  timer = setInterval(()=>{ if(!document.hidden) refreshAll(false); }, (state.settings.intervalSec||60)*1000);
+}
+// 切回标签页 / 打开时自动刷新
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden && state.settings.key) refreshAll(false); });
+
+/* ============================ 启动 ============================ */
+render();
+renderBanners();
+updateStatus();
+if(state.settings.key){ refreshAll(true); setupTimer(); }
+else { openSettings(); }
+</script>
+</body>
+</html>

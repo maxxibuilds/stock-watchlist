@@ -1,27 +1,38 @@
 name: refresh quotes
 on:
   schedule:
-    - cron: "*/10 13-21 * * 1-5"   # 美东盘中(UTC 13-21，含盘前/后缓冲)，每 10 分钟
-  workflow_dispatch: {}
+    - cron: "5 13-20 * * 1-5"   # 每小时一次“保险启动/重启”（GitHub 定时不可靠，仅作兜底）
+  workflow_dispatch: {}          # 手动启动循环
 permissions:
   contents: write
 concurrency:
   group: quotes
+  cancel-in-progress: true       # 新的启动会接管旧循环，避免重叠
 jobs:
-  quotes:
+  loop:
     runs-on: ubuntu-latest
+    timeout-minutes: 340         # 单次最长约 5.5 小时（GitHub 上限 6h）
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Fetch quotes
-        run: node scripts/fetch-quotes.mjs
+      - name: 常驻循环抓报价（约每10分钟一次，直到收盘 UTC 21:00）
         env:
           FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
-      - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/quotes.json
-          if git diff --staged --quiet; then echo "no change"; else git commit -m "chore: quotes [skip ci]" && git push; fi
+          for i in $(seq 1 33); do
+            H=$(date -u +%H)
+            if [ "$H" -ge 21 ]; then echo "盘后，退出循环"; break; fi
+            node scripts/fetch-quotes.mjs || true
+            git add data/quotes.json
+            if ! git diff --staged --quiet; then
+              git commit -m "chore: quotes [skip ci]"
+              git pull --rebase --autostash origin main || true
+              git push || { sleep 5; git pull --rebase --autostash origin main || true; git push || true; }
+            fi
+            echo "tick $i 完成 @ $(date -u +%H:%M) UTC"
+            sleep 300
+          done

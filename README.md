@@ -40,6 +40,23 @@ stock-watchlist/
 
 > 所有改动：改文件 → `git add -A && git commit -m "..." && git push` → GitHub Pages 自动重新部署（约1分钟）。看新版记得浏览器 **Ctrl+Shift+R** 强刷。
 
+### ⚠️ 本地改了要"推回家"(push 回 GitHub)，注意这几点
+
+1. **本地改了不 push = 线上不变**。网页跑的是 GitHub Pages 上的版本，所以改完必须 commit + push 才生效。
+2. **push 前先 `git pull --rebase`（最重要！）**。云端循环任务**每 ~10 分钟自动往仓库提交一次 `data/quotes.json`**，所以 GitHub 上一直有新提交；你本地不先拉就 push 会被拒绝（non-fast-forward / “tip is behind”）。
+   ```
+   git pull --rebase origin main   # 动手前 & push 前各拉一次
+   git add -A && git commit -m "改了xxx"
+   git pull --rebase origin main   # push 前再拉一次最稳
+   git push
+   ```
+   万一 push 还是被拒：再 `git pull --rebase origin main` 然后 `git push` 基本就好（你改的文件和机器人改的 quotes.json 不是同一个，会自动合并，不会冲突）。
+3. **不要手动改 `data/quotes.json` 和 `data/market.json`**。这两个是机器人自动生成/覆盖的，你手改会被下次任务冲掉、还可能造成冲突。**只改** `data/universe.json`、`index.html`、`README.md`、`scripts/`。
+4. **千万别把 Finnhub key 写进任何要提交的文件**（仓库是公开的！）。key 只放 GitHub Secret；本地测脚本用环境变量传。
+5. **`.nojekyll` 不能删**（删了 GitHub 会改用 Jekyll 构建报错，改动静默不部署）。
+6. **隔几天/换电脑再动手前，先 `git pull --rebase origin main` 拿最新**——因为机器人一直在推，本地副本很快就旧了，基于旧副本改容易撞车。
+7. 改完等约 1 分钟 Pages 构建完，浏览器 **Ctrl+Shift+R** 才看得到新版。
+
 ### 1) 增 / 删 / 移动 股票，改板块或分组 —— 改 `data/universe.json`
 - `sectors`：每个板块 `{id, name, syms:[代码...]}`。移动一只票=从一个板块的 syms 删掉、加到另一个。
 - `groups`：顶部大组 `{name, ids:[板块id...]}`，控制板块怎么分行显示。

@@ -1,5 +1,11 @@
 {
-  "ver": 2,
+  "ver": 3,
+  "groups": [
+    {"name":"科技","ids":["mega","semi","hardware","software","internet"]},
+    {"name":"金融","ids":["fin","pay"]},
+    {"name":"消费","ids":["staples","discretionary","auto"]},
+    {"name":"医工能源","ids":["health","energy","industrial","util"]}
+  ],
   "cn": {
     "NVDA":"英伟达","AMD":"AMD","AVGO":"博通","TSM":"台积电","ASML":"阿斯麦","MU":"美光","INTC":"英特尔","QCOM":"高通","TXN":"德州仪器","AMAT":"应用材料","LRCX":"泛林","KLAC":"科磊","MRVL":"迈威尔","ARM":"安谋","SMCI":"超微电脑","ADI":"亚德诺","MCHP":"微芯","NXPI":"恩智浦","ON":"安森美","MPWR":"芯源系统","TER":"泰瑞达","SWKS":"思佳讯","QRVO":"Qorvo","GFS":"格芯","ENTG":"恩特格里斯",
     "MSFT":"微软","ORCL":"甲骨文","CRM":"Salesforce","ADBE":"Adobe","SAP":"SAP","NOW":"ServiceNow","INTU":"Intuit","PANW":"Palo Alto","CRWD":"CrowdStrike","PLTR":"Palantir","SNOW":"Snowflake","DDOG":"Datadog","NET":"Cloudflare","FTNT":"Fortinet","ZS":"Zscaler","MDB":"MongoDB","TEAM":"Atlassian","WDAY":"Workday","ADSK":"Autodesk","SNPS":"新思","CDNS":"Cadence","ANSS":"Ansys","HUBS":"HubSpot","DOCU":"DocuSign","APP":"AppLovin","MSTR":"Strategy",
@@ -18,16 +24,16 @@
   },
   "sectors": [
     {"id":"mega","name":"七巨头","syms":["AAPL","MSFT","GOOGL","AMZN","META","NVDA","TSLA"]},
-    {"id":"semi","name":"半导体","syms":["NVDA","AMD","AVGO","TSM","ASML","MU","INTC","QCOM","TXN","AMAT","LRCX","KLAC","MRVL","ARM","SMCI","ADI","MCHP","NXPI","ON","MPWR","TER","SWKS","QRVO","GFS","ENTG"]},
-    {"id":"software","name":"软件/SaaS","syms":["MSFT","ORCL","CRM","ADBE","SAP","NOW","INTU","PANW","CRWD","PLTR","SNOW","DDOG","NET","FTNT","ZS","MDB","TEAM","WDAY","ADSK","SNPS","CDNS","HUBS","DOCU","APP","MSTR"]},
-    {"id":"internet","name":"互联网","syms":["GOOGL","META","AMZN","NFLX","UBER","ABNB","BKNG","DASH","SPOT","RBLX","PINS","SNAP","RDDT","TTD","ROKU","EA","TTWO","MTCH","PDD","BABA","SE","MELI","BIDU","JD","NTES"]},
-    {"id":"hardware","name":"硬件/网络","syms":["AAPL","DELL","HPQ","HPE","ANET","CSCO","NTAP","STX","WDC","GLW","KEYS","APH","TEL","ZBRA"]},
+    {"id":"semi","name":"半导体","syms":["NVDA","AMD","AVGO","TSM","ASML","MU","INTC","QCOM","TXN","AMAT","LRCX","KLAC","MRVL","ARM","ADI","MCHP","NXPI","ON","MPWR","TER","SWKS","QRVO","GFS","ENTG"]},
+    {"id":"software","name":"软件/SaaS","syms":["MSFT","ORCL","CRM","ADBE","SAP","NOW","INTU","PANW","CRWD","PLTR","SNOW","DDOG","NET","FTNT","ZS","MDB","TEAM","WDAY","ADSK","SNPS","CDNS","HUBS","DOCU","APP"]},
+    {"id":"internet","name":"互联网","syms":["GOOGL","META","AMZN","NFLX","UBER","ABNB","BKNG","DASH","SPOT","RBLX","PINS","SNAP","RDDT","TTD","ROKU","EA","TTWO","MTCH","PDD","BABA","SE","MELI","BIDU","JD","NTES","EBAY"]},
+    {"id":"hardware","name":"硬件/网络","syms":["AAPL","DELL","HPQ","HPE","ANET","CSCO","NTAP","STX","WDC","GLW","KEYS","APH","TEL","ZBRA","SMCI"]},
     {"id":"auto","name":"汽车/EV","syms":["TSLA","F","GM","RIVN","LCID","STLA","TM","RACE","NIO","LI","XPEV"]},
     {"id":"health","name":"医疗健康","syms":["LLY","UNH","JNJ","ABBV","MRK","PFE","TMO","ABT","DHR","AMGN","ISRG","NVO","BMY","GILD","VRTX","REGN","MDT","CI","ELV","CVS","HCA","ZTS","SYK","BSX","BDX","MRNA","DXCM","EW","GEHC","MCK"]},
     {"id":"fin","name":"金融","syms":["JPM","BAC","WFC","GS","MS","C","USB","PNC","SCHW","BLK","BX","KKR","AXP","COF","BK","MET","PRU","AIG","TRV","CB","PGR","ALL","MMC","ICE","CME","SPGI","MCO"]},
-    {"id":"pay","name":"支付/金融科技","syms":["V","MA","PYPL","FI","GPN","COIN","HOOD","SOFI","AFRM","NU","XYZ","FOUR"]},
-    {"id":"staples","name":"必需消费","syms":["PG","KO","PEP","COST","WMT","PM","MO","MDLZ","CL","KMB","GIS","KHC","STZ","KDP","HSY","KR","SYY","ADM","MNST","CLX"]},
-    {"id":"discretionary","name":"可选消费","syms":["HD","LOW","NKE","MCD","SBUX","TJX","ROST","LULU","CMG","ORLY","AZO","YUM","MAR","HLT","DG","DLTR","EBAY","DPZ"]},
+    {"id":"pay","name":"支付/金融科技","syms":["V","MA","PYPL","FI","GPN","COIN","HOOD","SOFI","AFRM","NU","XYZ","FOUR","MSTR"]},
+    {"id":"staples","name":"必需消费","syms":["PG","KO","PEP","COST","WMT","PM","MO","MDLZ","CL","KMB","GIS","KHC","STZ","KDP","HSY","KR","SYY","ADM","MNST","CLX","DG","DLTR"]},
+    {"id":"discretionary","name":"可选消费","syms":["HD","LOW","NKE","MCD","SBUX","TJX","ROST","LULU","CMG","ORLY","AZO","YUM","MAR","HLT","DPZ"]},
     {"id":"energy","name":"能源","syms":["XOM","CVX","COP","SLB","EOG","MPC","PSX","VLO","OXY","WMB","KMI","OKE","DVN","FANG","HAL","BKR","LNG","TRGP","CTRA"]},
     {"id":"industrial","name":"工业/国防","syms":["BA","CAT","GE","HON","RTX","LMT","NOC","GD","DE","UPS","FDX","UNP","CSX","NSC","MMM","EMR","ETN","ITW","PH","GEV","PCAR","CMI","WM","LHX","TDG"]},
     {"id":"util","name":"公用/材料/地产","syms":["NEE","DUK","SO","D","AEP","EXC","SRE","LIN","APD","SHW","FCX","NEM","NUE","DOW","ECL","PLD","AMT","EQIX","CCI","PSA","O","SPG"]}

@@ -23,8 +23,10 @@
   .idx .chip{display:flex;align-items:center;gap:7px;background:var(--surf);border:1px solid var(--card-bd);border-radius:9px;padding:5px 10px;font-size:12.5px}
   .idx .chip .nm{color:var(--txt-dim)} .idx .chip .v{font-family:var(--mono);font-weight:600}
   .spacer{flex:1} .upd{font-size:12px;color:var(--txt-dim);font-variant-numeric:tabular-nums}
-  .tabwrap{max-width:1360px;margin:0 auto;padding:4px 14px 0}
-  .tabs{display:flex;flex-wrap:wrap;gap:4px}
+  .tabwrap{max-width:1360px;margin:0 auto;padding:6px 14px 2px}
+  .tabs{display:flex;flex-direction:column;gap:3px}
+  .tabgroup{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+  .glabel{font-size:11px;color:var(--txt-dim);min-width:50px;flex-shrink:0;letter-spacing:.5px;font-weight:700}
   .tab{display:inline-flex;align-items:center;gap:7px;cursor:pointer;padding:10px 15px;border:none;background:transparent;color:var(--txt-dim);font-size:14px;font-weight:600;border-bottom:2.5px solid transparent;border-radius:8px 8px 0 0}
   .tab:hover{color:var(--txt);background:var(--hover)} .tab.on{color:var(--txt);border-bottom-color:var(--accent)}
   .tab .cnt{font-size:11px;color:var(--txt-dim);background:rgba(120,140,180,.14);padding:1px 7px;border-radius:20px;font-weight:600}
@@ -151,9 +153,20 @@ function visibleSyms(sec){
 }
 function renderTabs(){
   const box=$("#tabs"); box.innerHTML="";
-  state.sectors.forEach(sec=>{ const b=document.createElement("button"); b.className="tab"+(sec.id===state.activeId?" on":"");
-    b.innerHTML=`${esc(sec.name)} <span class="cnt">${sec.syms.length}</span>`;
-    b.onclick=()=>{ state.activeId=sec.id; saveState(); renderTabs(); renderSummary(); renderTable(); }; box.appendChild(b); });
+  let groups=(UNI.groups&&UNI.groups.length)?UNI.groups.map(g=>({name:g.name,ids:g.ids.slice()})):[{name:"",ids:state.sectors.map(s=>s.id)}];
+  const grouped=new Set(groups.flatMap(g=>g.ids));
+  const rest=state.sectors.filter(s=>!grouped.has(s.id)).map(s=>s.id);
+  if(rest.length) groups.push({name:"其他",ids:rest});
+  groups.forEach(g=>{
+    const row=document.createElement("div"); row.className="tabgroup";
+    if(g.name) row.insertAdjacentHTML("beforeend",`<span class="glabel">${esc(g.name)}</span>`);
+    g.ids.forEach(id=>{ const sec=state.sectors.find(x=>x.id===id); if(!sec)return;
+      const b=document.createElement("button"); b.className="tab"+(sec.id===state.activeId?" on":"");
+      b.innerHTML=`${esc(sec.name)} <span class="cnt">${sec.syms.length}</span>`;
+      b.onclick=()=>{ state.activeId=sec.id; saveState(); renderTabs(); renderSummary(); renderTable(); };
+      row.appendChild(b); });
+    box.appendChild(row);
+  });
 }
 function renderIndices(){ const box=$("#idx"); box.innerHTML="";
   INDICES.forEach(s=>{ const d=(QIDX[s]||{}).d; box.insertAdjacentHTML("beforeend",`<div class="chip"><span class="nm">${IDXCN[s]}</span><span class="v ${sgn(d)}">${fmtPct(d)}</span></div>`); }); }
@@ -170,7 +183,8 @@ function renderSummary(){
     (worst?`<div class="kv"><span class="k">领跌</span><span class="v ${sgn(worst.v)}">${worst.s} ${fmtPct(worst.v)}</span></div>`:"");
 }
 function renderTable(){
-  const sec=activeSector(),tb=$("#table"),sb=sortBy[sec.id],syms=visibleSyms(sec);
+  const sec=activeSector(); if(!sortBy[sec.id])sortBy[sec.id]={key:"today",dir:-1};
+  const tb=$("#table"),sb=sortBy[sec.id],syms=visibleSyms(sec);
   $("#filterCount").textContent=`${syms.length} / ${sec.syms.length} 只`;
   const head="<thead><tr>"+COLS.map(c=>{ const ar=(sb&&sb.key===c.k)?`<span class="ar">${sb.dir>0?"▲":"▼"}</span>`:"";
     return `<th class="${c.l?'l':''}${c.c?'c':''}${c.nos?' nos':''}" data-k="${c.sort?c.k:''}">${c.t}${ar}</th>`; }).join("")+"</tr></thead>";

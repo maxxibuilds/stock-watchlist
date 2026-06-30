@@ -87,6 +87,18 @@ async function pool(items, worker, conc, gap) {
     const spark = pts.slice(-126).map(p => +p.v.toFixed(2));   // 近6月用于趋势图
     data[sym] = { n: name, ytd: ret.ytd, mtd: ret.mtd, q3m: ret.q3m, c: spark };
   }, 6, 120);
+  // PE：用 Finnhub metric(peTTM) 补，限速 ~55/min
+  const KEY = process.env.FINNHUB_KEY;
+  if (KEY) {
+    for (const sym of Object.keys(data)) {
+      try {
+        const r = await fetch(`https://finnhub.io/api/v1/stock/metric?metric=all&symbol=${encodeURIComponent(sym)}&token=${KEY}`);
+        if (r.ok) { const j = await r.json(); const pe = j?.metric?.peTTM; if (pe != null && !isNaN(pe)) data[sym].pe = +(+pe).toFixed(1); }
+      } catch (e) {}
+      await sleep(1100);
+    }
+    console.log("PE filled");
+  }
   const out = { updated: new Date().toISOString().slice(0, 10), count: Object.keys(data).length, data };
   await writeFile(join(ROOT, "data", "market.json"), JSON.stringify(out));
   console.log("written:", out.count, "ok /", syms.length, "  failed:", fails.length);

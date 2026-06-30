@@ -1,0 +1,27 @@
+name: refresh quotes
+on:
+  schedule:
+    - cron: "*/10 13-21 * * 1-5"   # 美东盘中(UTC 13-21，含盘前/后缓冲)，每 10 分钟
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: quotes
+jobs:
+  quotes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Fetch quotes
+        run: node scripts/fetch-quotes.mjs
+        env:
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/quotes.json
+          if git diff --staged --quiet; then echo "no change"; else git commit -m "chore: quotes [skip ci]" && git push; fi

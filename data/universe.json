@@ -1,5 +1,5 @@
 {
-  "ver": 1,
+  "ver": 2,
   "cn": {
     "NVDA":"英伟达","AMD":"AMD","AVGO":"博通","TSM":"台积电","ASML":"阿斯麦","MU":"美光","INTC":"英特尔","QCOM":"高通","TXN":"德州仪器","AMAT":"应用材料","LRCX":"泛林","KLAC":"科磊","MRVL":"迈威尔","ARM":"安谋","SMCI":"超微电脑","ADI":"亚德诺","MCHP":"微芯","NXPI":"恩智浦","ON":"安森美","MPWR":"芯源系统","TER":"泰瑞达","SWKS":"思佳讯","QRVO":"Qorvo","GFS":"格芯","ENTG":"恩特格里斯",
     "MSFT":"微软","ORCL":"甲骨文","CRM":"Salesforce","ADBE":"Adobe","SAP":"SAP","NOW":"ServiceNow","INTU":"Intuit","PANW":"Palo Alto","CRWD":"CrowdStrike","PLTR":"Palantir","SNOW":"Snowflake","DDOG":"Datadog","NET":"Cloudflare","FTNT":"Fortinet","ZS":"Zscaler","MDB":"MongoDB","TEAM":"Atlassian","WDAY":"Workday","ADSK":"Autodesk","SNPS":"新思","CDNS":"Cadence","ANSS":"Ansys","HUBS":"HubSpot","DOCU":"DocuSign","APP":"AppLovin","MSTR":"Strategy",
@@ -17,7 +17,7 @@
     "SPY":"标普500","QQQ":"纳指100","DIA":"道指"
   },
   "sectors": [
-    {"id":"mega","name":"七巨头+","syms":["AAPL","MSFT","GOOGL","AMZN","META","NVDA","TSLA","AVGO","NFLX","ORCL"]},
+    {"id":"mega","name":"七巨头","syms":["AAPL","MSFT","GOOGL","AMZN","META","NVDA","TSLA"]},
     {"id":"semi","name":"半导体","syms":["NVDA","AMD","AVGO","TSM","ASML","MU","INTC","QCOM","TXN","AMAT","LRCX","KLAC","MRVL","ARM","SMCI","ADI","MCHP","NXPI","ON","MPWR","TER","SWKS","QRVO","GFS","ENTG"]},
     {"id":"software","name":"软件/SaaS","syms":["MSFT","ORCL","CRM","ADBE","SAP","NOW","INTU","PANW","CRWD","PLTR","SNOW","DDOG","NET","FTNT","ZS","MDB","TEAM","WDAY","ADSK","SNPS","CDNS","HUBS","DOCU","APP","MSTR"]},
     {"id":"internet","name":"互联网","syms":["GOOGL","META","AMZN","NFLX","UBER","ABNB","BKNG","DASH","SPOT","RBLX","PINS","SNAP","RDDT","TTD","ROKU","EA","TTWO","MTCH","PDD","BABA","SE","MELI","BIDU","JD","NTES"]},

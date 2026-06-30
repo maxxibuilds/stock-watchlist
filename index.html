@@ -92,6 +92,20 @@
   .field input:focus{outline:none;border-color:var(--accent)} .field .hint{font-size:12px;color:var(--txt-dim);margin-top:6px}
   .modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
   .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--txt-dim);margin:14px 8px 0} .legend b{color:var(--txt)} .muted{color:var(--txt-dim)}
+  /* ===== 主题（JS 切换；默认午夜蓝=原样） ===== */
+  :root{--bg:radial-gradient(1100px 700px at 12% -8%,rgba(76,141,255,.16),transparent 60%),radial-gradient(900px 600px at 96% 4%,rgba(39,215,150,.10),transparent 55%),radial-gradient(900px 800px at 60% 120%,rgba(120,80,255,.10),transparent 60%),linear-gradient(180deg,#0a0e1a,#0b1020 40%,#080b14);--header:linear-gradient(180deg,rgba(10,14,26,.85),rgba(10,14,26,.6));--modal:#121a2c;--surf:rgba(255,255,255,.06);--hover:rgba(255,255,255,.05)}
+  body{background:var(--bg);background-attachment:fixed}
+  header{background:var(--header)} .modal{background:var(--modal)}
+  .btn,.idx .chip,.chip,.filterbar input,.addrow input,.field input,.onboard input,thead th{background:var(--surf)}
+  .btn:hover,tbody tr:hover,.tab:hover,.iconbtn:hover{background:var(--hover)} .btn:hover{border-color:var(--accent)}
+  .pill.pos{background:color-mix(in srgb,var(--green) 16%,transparent)} .pill.neg{background:color-mix(in srgb,var(--red) 16%,transparent)}
+  body.term{font-family:ui-monospace,'JetBrains Mono','Consolas',monospace}
+  .themes{display:flex;flex-wrap:wrap;gap:7px}
+  .sw{width:50px;height:34px;border-radius:9px;border:2px solid transparent;cursor:pointer;position:relative;padding:0;overflow:hidden}
+  .sw.on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(76,141,255,.3)}
+  .sw .d{position:absolute;width:8px;height:8px;border-radius:50%;bottom:4px;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+  .sw .d1{left:6px} .sw .d2{left:18px} .sw .d3{left:30px}
+  .swname{font-size:12px;color:var(--txt-dim);margin-top:9px}
 </style>
 </head>
 <body>
@@ -133,6 +147,7 @@
       <div class="hint">没有就去 <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a> 免费拿（60次/分钟）。</div>
     </div>
     <div class="field"><label>自动刷新间隔（秒）</label><input type="number" id="intervalInput" min="10" step="5" value="60"></div>
+    <div class="field"><label>外观主题 · 点一下实时换肤</label><div class="themes" id="themeGrid"></div><div class="swname" id="swName"></div></div>
     <div class="modal-foot"><button class="btn ghost" id="closeSettings">取消</button><button class="btn primary" id="saveSettings">保存</button></div>
   </div>
 </div>
@@ -145,11 +160,36 @@ let UNI={cn:{},sectors:[]}, CN={}, MKT={}, MKTdate="";
 let state=loadState(), qdata={}, meta={}, names={}, idxData={}, sortBy={}, filter={q:"",dir:"all"};
 let timer=null, rateLimited=false, activeLoad=0;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const THEMES=[
+ {id:"oled",name:"纯黑 OLED",modal:"#141416",v:{bg:"#000000",card:"#141416",cardBd:"rgba(255,255,255,.10)",line:"rgba(255,255,255,.07)",txt:"#f2f2f4",dim:"#8a8a92",acc:"#4c8dff",up:"#2ee6a0",dn:"#ff5a6a"}},
+ {id:"graphite",name:"石墨灰",modal:"#20242b",v:{bg:"linear-gradient(180deg,#1b1e23,#121417)",card:"#20242b",cardBd:"rgba(255,255,255,.08)",line:"rgba(255,255,255,.06)",txt:"#e6e8ec",dim:"#8b929c",acc:"#6aa1ff",up:"#3ddc97",dn:"#ff6b7a"}},
+ {id:"midnight",name:"午夜蓝",modal:"#121a2c",v:{bg:"radial-gradient(1100px 700px at 12% -8%,rgba(76,141,255,.16),transparent 60%),radial-gradient(900px 600px at 96% 4%,rgba(39,215,150,.10),transparent 55%),radial-gradient(900px 800px at 60% 120%,rgba(120,80,255,.10),transparent 60%),linear-gradient(180deg,#0a0e1a,#0b1020 40%,#080b14)",card:"rgba(22,30,48,.66)",cardBd:"rgba(120,140,180,.14)",line:"rgba(120,140,180,.10)",txt:"#e8edf6",dim:"#8a96ad",acc:"#4c8dff",up:"#27d796",dn:"#ff5a6a"}},
+ {id:"purple",name:"深空紫",modal:"#1a1230",v:{bg:"radial-gradient(800px 480px at 82% -10%,rgba(150,90,255,.22),transparent 60%),linear-gradient(180deg,#120c20,#0a0712)",card:"rgba(32,24,52,.72)",cardBd:"rgba(170,140,255,.16)",line:"rgba(170,140,255,.10)",txt:"#efeaff",dim:"#9a8fb5",acc:"#a880ff",up:"#36e0a8",dn:"#ff6a8a"}},
+ {id:"emerald",name:"墨绿",modal:"#0e1f17",v:{bg:"radial-gradient(800px 480px at 82% -10%,rgba(40,200,150,.15),transparent 60%),linear-gradient(180deg,#0a1712,#06100b)",card:"rgba(16,34,26,.74)",cardBd:"rgba(80,200,150,.14)",line:"rgba(80,200,150,.09)",txt:"#e6f2ea",dim:"#86a596",acc:"#22d0a0",up:"#5cf0a6",dn:"#ff7a6a"}},
+ {id:"mocha",name:"暖棕摩卡",modal:"#241a10",v:{bg:"radial-gradient(800px 480px at 82% -10%,rgba(224,160,96,.16),transparent 60%),linear-gradient(180deg,#17110b,#0f0a06)",card:"rgba(42,32,22,.78)",cardBd:"rgba(200,160,110,.14)",line:"rgba(200,160,110,.09)",txt:"#f1e8dc",dim:"#b29a82",acc:"#e0a35e",up:"#5cc98a",dn:"#ff7a6a"}},
+ {id:"light",name:"浅色白天",light:true,modal:"#ffffff",v:{bg:"linear-gradient(180deg,#f5f7fb,#eaeef4)",card:"#ffffff",cardBd:"rgba(20,30,50,.12)",line:"rgba(20,30,50,.08)",txt:"#1a2233",dim:"#6b7688",acc:"#2563eb",up:"#16a34a",dn:"#dc2626"}},
+ {id:"cream",name:"米白纸感",light:true,modal:"#fffdf8",v:{bg:"linear-gradient(180deg,#f5f1e8,#ece5d8)",card:"#fffdf8",cardBd:"rgba(60,50,30,.14)",line:"rgba(60,50,30,.09)",txt:"#2a2620",dim:"#8a8170",acc:"#b4530b",up:"#15803d",dn:"#b91c1c"}},
+ {id:"neon",name:"赛博霓虹",modal:"#120a1e",v:{bg:"radial-gradient(650px 380px at 14% -10%,rgba(0,229,255,.18),transparent 55%),radial-gradient(650px 380px at 86% 0,rgba(255,45,142,.16),transparent 55%),#08010f",card:"rgba(18,10,30,.76)",cardBd:"rgba(0,229,255,.18)",line:"rgba(0,229,255,.10)",txt:"#eafdff",dim:"#7d8aa0",acc:"#00e5ff",up:"#2ee66a",dn:"#ff2d6e"}},
+ {id:"terminal",name:"终端琥珀",modal:"#0a0a0a",v:{bg:"#000000",card:"#0a0a0a",cardBd:"rgba(255,176,0,.22)",line:"rgba(255,176,0,.12)",txt:"#d8dde0",dim:"#7a8a7e",acc:"#ffb000",up:"#00d26a",dn:"#ff3b3b"}},
+];
+function applyTheme(id){
+  const t=THEMES.find(x=>x.id===id)||THEMES[2], r=document.documentElement.style, v=t.v, dk=!t.light;
+  const set={"--bg":v.bg,"--card":v.card,"--card-bd":v.cardBd,"--line":v.line,"--txt":v.txt,"--txt-dim":v.dim,"--flat":v.dim,
+    "--accent":v.acc,"--green":v.up,"--red":v.dn,"--modal":t.modal,
+    "--header":dk?"linear-gradient(180deg,rgba(8,10,16,.82),rgba(8,10,16,.5))":"linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,255,255,.62))",
+    "--surf":dk?"rgba(255,255,255,.06)":"rgba(0,0,0,.05)","--hover":dk?"rgba(255,255,255,.05)":"rgba(0,0,0,.04)"};
+  for(const k in set) r.setProperty(k,set[k]);
+  document.body.classList.toggle("term",id==="terminal"); document.body.classList.toggle("light",!!t.light);
+}
+function buildThemes(){
+  $("#themeGrid").innerHTML=THEMES.map(t=>`<button class="sw ${state.settings.theme===t.id?'on':''}" data-id="${t.id}" title="${t.name}" style="background:${t.v.bg}"><span class="d d1" style="background:${t.v.acc}"></span><span class="d d2" style="background:${t.v.up}"></span><span class="d d3" style="background:${t.v.dn}"></span></button>`).join("");
+  const c=THEMES.find(x=>x.id===state.settings.theme); $("#swName").textContent="当前："+(c?c.name:"—");
+}
 
 function loadState(){
   let s=null; try{ s=JSON.parse(localStorage.getItem(LS.state)); }catch(e){}
   if(!s) s={};
-  s.settings=Object.assign({key:"",intervalSec:60,activeId:"mega"},s.settings||{});
+  s.settings=Object.assign({key:"",intervalSec:60,activeId:"mega",theme:"midnight"},s.settings||{});
   if(!s.settings.key){ for(const old of ["sbx_state_v3","sbx_state_v2","sb_state_v1"]){ try{ const o=JSON.parse(localStorage.getItem(old)); if(o&&o.settings&&o.settings.key){s.settings.key=o.settings.key;break;} }catch(e){} } }
   if(!Array.isArray(s.sectors)) s.sectors=[];
   return s;
@@ -312,8 +352,12 @@ function renderAll(){ renderTabs(); renderTools(); renderBanner(); renderSummary
 function setDot(s){ $("#dot").className="dot "+(s==="ok"?"ok":s==="load"?"load":s==="err"?"err":""); renderUpdated(); }
 
 /* ---------- 交互 ---------- */
-function openSettings(){ $("#keyInput").value=state.settings.key||""; $("#intervalInput").value=state.settings.intervalSec||60; $("#keyOk").textContent=state.settings.key?"✓ 已配置":""; $("#modal").classList.add("show"); }
+function openSettings(){ $("#keyInput").value=state.settings.key||""; $("#intervalInput").value=state.settings.intervalSec||60; $("#keyOk").textContent=state.settings.key?"✓ 已配置":""; buildThemes(); $("#modal").classList.add("show"); }
 function closeSettings(){ $("#modal").classList.remove("show"); }
+$("#themeGrid").addEventListener("click",e=>{ const b=e.target.closest(".sw"); if(!b)return; const id=b.dataset.id;
+  state.settings.theme=id; saveState(); applyTheme(id);
+  document.querySelectorAll("#themeGrid .sw").forEach(x=>x.classList.toggle("on",x.dataset.id===id));
+  const c=THEMES.find(x=>x.id===id); $("#swName").textContent="当前："+(c?c.name:"—"); });
 $("#settingsBtn").onclick=openSettings; $("#closeSettings").onclick=closeSettings; $("#modal").onclick=e=>{if(e.target.id==="modal")closeSettings();};
 $("#saveSettings").onclick=()=>{ state.settings.key=$("#keyInput").value.trim(); state.settings.intervalSec=Math.max(10,parseInt($("#intervalInput").value)||60);
   saveState(); closeSettings(); setupTimer(); renderAll(); if(state.settings.key){ loadIndices(); loadSector(activeSector()); } };
@@ -338,6 +382,7 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&state.se
 
 /* ---------- 启动 ---------- */
 (async()=>{
+  applyTheme(state.settings.theme);
   renderAll();
   await loadData();
   renderAll();

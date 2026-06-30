@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>自选股看板</title>
+<title>Max Builds</title>
 <style>
   :root{
     --bg0:#0a0e1a; --card:rgba(22,30,48,.66); --card-bd:rgba(120,140,180,.14);
@@ -111,7 +111,7 @@
 <body>
 <header>
   <div class="hrow">
-    <div class="brand"><span class="dot" id="dot"></span>自选股看板</div>
+    <div class="brand"><span class="dot" id="dot"></span>Max Builds</div>
     <div class="idx" id="idx"></div>
     <div class="spacer"></div>
     <span class="muted" id="updated" style="font-size:12px"></span>
@@ -129,7 +129,6 @@
       <span class="muted" id="filterCount"></span>
     </div>
     <div class="tablescroll"><table id="table"></table></div>
-    <div class="secttools" id="secttools"></div>
   </div>
 </main>
 <div class="modal-bg" id="modal">
@@ -285,9 +284,6 @@ function renderTabs(){
   state.sectors.forEach(sec=>{ const b=document.createElement("button"); b.className="tab"+(sec.id===state.settings.activeId?" on":"");
     b.innerHTML=`${esc(sec.name)} <span class="cnt">${sec.syms.length}</span>`;
     b.onclick=()=>{ state.settings.activeId=sec.id; saveState(); renderAll(); loadSector(sec); }; box.appendChild(b); });
-  const add=document.createElement("button"); add.className="tab add"; add.textContent="＋"; add.title="新建板块";
-  add.onclick=()=>{ const n=prompt("板块名称："); if(n){ state.sectors.push({id:"s"+Date.now(),name:n.trim(),syms:[]}); state.settings.activeId=state.sectors[state.sectors.length-1].id; saveState(); renderAll(); } };
-  box.appendChild(add);
 }
 function renderIndices(){ const box=$("#idx"); box.innerHTML="";
   INDICES.forEach(s=>{ const d=idxData[s]||{}; box.insertAdjacentHTML("beforeend",`<div class="chip"><span class="nm">${CN[s]||s}</span><span class="v ${sgn(d.today)}">${fmtPct(d.today)}</span></div>`); }); }
@@ -320,15 +316,14 @@ function renderTable(){
       `<td class="num ${sgn(ret(s,'q3m'))}">${fmtPct(ret(s,'q3m'))}</td>`+
       `<td class="num ${sgn(ret(s,'ytd'))}">${fmtPct(ret(s,'ytd'))}</td>`+
       `<td class="num flat">${fmtPE(pe(s))}</td></tr>`; });
-  body+=`<tr class="addrow"><td colspan="${COLS.length}"><input id="addSym" placeholder="加美股代码 (如 GME) ↵"></td></tr></tbody>`;
+  body+=`</tbody>`;
   tb.innerHTML=head+body;
 }
-function renderTools(){
-  $("#secttools").innerHTML=`<span class="muted" style="font-size:12px">共 ${state.sectors.reduce((a,s)=>a+s.syms.length,0)} 只${MKTdate?" · 趋势数据 "+MKTdate:""}</span>`; }
+function renderTools(){}
 function renderBanner(){ const b=$("#banner");
   if(!state.settings.key){
     b.innerHTML=`<div class="onboard">
-      <div class="ob-title">👋 欢迎使用自选股看板</div>
+      <div class="ob-title">👋 欢迎使用 Max Builds</div>
       <div class="ob-text">看<b>实时</b>美股报价需要一个 <b>免费的 Finnhub Key</b>（60 次/分钟，个人用足够）。趋势图和涨跌幅是现成的，填了 key 就有实时价格。</div>
       <ol>
         <li><a class="btn primary" href="https://finnhub.io/register" target="_blank">① 免费注册拿 Key（约 30 秒）↗</a></li>
@@ -339,8 +334,9 @@ function renderBanner(){ const b=$("#banner");
     const go=()=>{ const k=$("#obKey").value.trim(); if(!k)return; state.settings.key=k; saveState(); setupTimer(); renderAll(); loadIndices(); loadSector(activeSector()); };
     $("#obGo").onclick=go; $("#obKey").addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
   } else b.innerHTML=""; }
-function renderUpdated(){ const t=state.settings._ts?new Date(state.settings._ts).toLocaleTimeString("zh-CN",{hour12:false}):"—";
-  $("#updated").innerHTML=state.settings.key?`${rateLimited?'<span style="color:var(--warn)">限流· </span>':''}自动刷新 · 更新 ${t}`:""; }
+function fmtDT(ts){ if(!ts)return"—"; const d=new Date(ts),p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; }
+function renderUpdated(){ $("#updated").innerHTML=state.settings.key?`${rateLimited?'<span style="color:var(--warn)">限流· </span>':''}更新时间 ${fmtDT(state.settings._ts)}`:""; }
 function renderAll(){ renderTabs(); renderTools(); renderBanner(); renderSummary(); renderTable(); renderUpdated(); }
 function setDot(s){ $("#dot").className="dot "+(s==="ok"?"ok":s==="load"?"load":s==="err"?"err":""); renderUpdated(); }
 

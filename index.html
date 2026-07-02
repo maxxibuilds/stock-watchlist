@@ -23,6 +23,7 @@
   .idx .chip{display:flex;align-items:center;gap:7px;background:var(--surf);border:1px solid var(--card-bd);border-radius:9px;padding:5px 10px;font-size:12.5px}
   .idx .chip .nm{color:var(--txt-dim)} .idx .chip .v{font-family:var(--mono);font-weight:600}
   .spacer{flex:1} .upd{font-size:12px;color:var(--txt-dim);font-variant-numeric:tabular-nums}
+  .upd.stale{color:#e6a23c;font-weight:600}
   .tabwrap{max-width:1360px;margin:0 auto;padding:6px 14px 2px}
   .tabs{display:flex;flex-direction:column;gap:3px}
   .tabgroup{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
@@ -106,6 +107,19 @@ const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 function dispName(s){ return CN[s]||(MKT[s]&&MKT[s].n)||""; }
 function fmtDT(ts){ if(!ts)return"—"; const d=new Date(ts),p=n=>String(n).padStart(2,"0");
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; }
+
+/* ---------- 美股时段判断（按美东时区算，自动适应夏令时） ----------
+   休市日历硬编码到 2027；过期后最多在休市日误显示"延迟"，不影响数据本身 */
+const MKT_HOLIDAYS=new Set(["2026-01-01","2026-01-19","2026-02-16","2026-04-03","2026-05-25","2026-06-19","2026-07-03","2026-09-07","2026-11-26","2026-12-25",
+ "2027-01-01","2027-01-18","2027-02-15","2027-03-26","2027-05-31","2027-06-18","2027-07-05","2027-09-06","2027-11-25","2027-12-24"]);
+const MKT_HALF=new Set(["2026-11-27","2026-12-24","2027-11-26"]); // 半日市，13:00 提前收盘
+function etNow(){ const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23",weekday:"short"}).formatToParts(new Date());
+  const g=t=>parts.find(x=>x.type===t).value;
+  return {date:`${g("year")}-${g("month")}-${g("day")}`, mins:+g("hour")*60+ +g("minute"), wd:g("weekday")}; }
+function marketOpen(){ const e=etNow();
+  if(e.wd==="Sat"||e.wd==="Sun"||MKT_HOLIDAYS.has(e.date)) return false;
+  const close=MKT_HALF.has(e.date)?13*60:16*60;
+  return e.mins>=9*60+30 && e.mins<close; }
 
 /* ---------- 数据 ---------- */
 async function loadStatic(){
@@ -203,7 +217,9 @@ function renderTable(){
   body+=`</tbody>`;
   tb.innerHTML=head+body;
 }
-function renderUpdated(){ $("#updated").innerHTML=`更新时间 ${fmtDT(QTS)}`; }
+function renderUpdated(){ const el=$("#updated"), open=marketOpen(), age=QTS?Math.round((Date.now()-QTS)/60000):null;
+  if(open&&(age==null||age>20)){ el.className="upd stale"; el.innerHTML=`⚠ 数据延迟${age!=null?` ${age} 分钟`:""}（最后更新 ${fmtDT(QTS)}）`; }
+  else{ el.className="upd"; el.innerHTML=`更新时间 ${fmtDT(QTS)}${open?"":"（休市）"}`; } }
 function setDot(s){ $("#dot").className="dot "+(s==="ok"?"ok":s==="err"?"err":""); }
 
 /* ---------- 交互 ---------- */

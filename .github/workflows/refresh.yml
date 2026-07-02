@@ -2,6 +2,7 @@ name: refresh market data
 on:
   schedule:
     - cron: "20 22 * * 1-5"   # 美东收盘后（约 UTC 22:20，周一到周五）
+    - cron: "5 23 * * 1-5"    # 备份班次：主班被 GitHub 漏发时兜底（数据没变就不会提交，无副作用）
   workflow_dispatch: {}        # 也可手动触发（改了 universe/脚本后手动跑一次即可）
 permissions:
   contents: write

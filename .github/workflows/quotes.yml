@@ -1,17 +1,17 @@
 name: refresh quotes
 on:
   schedule:
-    - cron: "5 13-20 * * 1-5"   # 每小时一次“保险启动/重启”（GitHub 定时不可靠，仅作兜底）
-  workflow_dispatch: {}          # 手动启动循环
+    - cron: "7,27,47 13-20 * * 1-5"  # 每小时 3 班启动机会（GitHub 定时常迟到/漏发，多班次自愈；避开整点高峰）
+  workflow_dispatch: {}              # 手动启动循环
 permissions:
   contents: write
 concurrency:
   group: quotes
-  cancel-in-progress: true       # 新的启动会接管旧循环，避免重叠
+  cancel-in-progress: false          # 新班不杀正在跑的循环，而是排队等它结束后接棒（接力制，循环挂了最多 ~20 分钟自动复活）
 jobs:
   loop:
     runs-on: ubuntu-latest
-    timeout-minutes: 340         # 单次最长约 5.5 小时（GitHub 上限 6h）
+    timeout-minutes: 340             # 兜底硬上限（GitHub 上限 6h）；正常靠下面 SECONDS 自检干净退出交棒
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,16 +23,20 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          for i in $(seq 1 33); do
+          # 阈值 19200s(5h20m)：留足一个最坏 tick(~930s) 的余量，确保先自退出、不被 340min 硬超时杀掉
+          # 每条命令都套 coreutils timeout：单个 tick 卡死不会占住 concurrency 组拖垮整个接力
+          while true; do
             H=$(date -u +%H)
             if [ "$H" -ge 21 ]; then echo "盘后，退出循环"; break; fi
-            node scripts/fetch-quotes.mjs || true
+            if [ "$SECONDS" -ge 19200 ]; then echo "跑满 5h20m，干净退出交棒给排队的下一班"; break; fi
+            timeout 600 node scripts/fetch-quotes.mjs || true
             git add data/quotes.json
             if ! git diff --staged --quiet; then
               git commit -m "chore: quotes [skip ci]"
-              git pull --rebase --autostash origin main || true
-              git push || { sleep 5; git pull --rebase --autostash origin main || true; git push || true; }
+              timeout 60 git pull --rebase --autostash origin main || true
+              timeout 60 git push || { sleep 5; timeout 60 git pull --rebase --autostash origin main || true; timeout 60 git push || true; }
             fi
-            echo "tick $i 完成 @ $(date -u +%H:%M) UTC"
+            echo "tick 完成 @ $(date -u +%H:%M) UTC"
+            if [ "$SECONDS" -ge 19200 ]; then echo "跑满 5h20m，干净退出交棒（省掉末尾空睡）"; break; fi
             sleep 300
           done

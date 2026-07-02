@@ -23,7 +23,8 @@ stock-watchlist/
 │  └─ quotes.json          ← 自动生成：实时价格+今日%（盘中每~10分钟更新）
 ├─ scripts/
 │  ├─ fetch-quotes.mjs     ← 抓实时报价 → quotes.json（Finnhub /quote）
-│  └─ fetch-market.mjs     ← 抓历史+PE → market.json（Yahoo 日线 + Finnhub metric）
+│  ├─ fetch-market.mjs     ← 抓历史+PE → market.json（Yahoo 日线 + Finnhub metric）
+│  └─ kick-quotes.ps1      ← 本机保险丝：Windows 计划任务用它兜底拉起 quotes 循环（见"自愈机制"）
 └─ .github/workflows/
    ├─ quotes.yml           ← 盘中常驻循环，每~10分钟跑 fetch-quotes
    └─ refresh.yml          ← 每天收盘后跑 fetch-market（趋势/涨跌幅/PE）
@@ -35,6 +36,17 @@ stock-watchlist/
 - **价格怎么来的**：GitHub 服务器上的 `quotes.yml` 工作流盘中常驻运行，每~10分钟用密钥抓全部 ~280 只报价，提交到 `data/quotes.json`。**你关着网页它也在更新**。
 - **趋势/涨跌幅/PE 怎么来的**：`refresh.yml` 每天收盘后跑一次，从 Yahoo 拉 1 年日线算出 YTD/本月/近90天 + 留近6月收盘画趋势图，并用 Finnhub 补 PE，写进 `data/market.json`。
 - **API key**：你的 Finnhub key **只存在 GitHub 仓库的加密 Secret** 里（仓库 Settings → Secrets and variables → Actions → `FINNHUB_KEY`），网页和代码里都没有。免费档 60 次/分钟。
+
+### 自愈机制（2026-07 加，解决"GitHub 定时器不触发导致数据停更"）
+
+GitHub 的 cron 经常迟到 30–60 分钟甚至漏发，靠单班定时启动循环会开天窗。现在是四层防护：
+
+1. **密集班次**：`quotes.yml` 定时从每小时 1 班改成 3 班（UTC :07/:27/:47），漏一班还有下一班。
+2. **排队接力**：`concurrency.cancel-in-progress: false`——新班不会杀掉正在跑的循环，而是排队等它结束后无缝接棒；循环自己跑满 5h20m 或到收盘（UTC 21:00）会干净退出交棒，循环内每条命令都套了 `timeout` 防止单个 tick 卡死占坑。循环若意外挂掉，最多 ~20 分钟内被下一班自动复活。（Actions 历史里会有一些 cancelled 的排队班次，正常现象。）
+3. **本机保险丝**：Windows 计划任务 `StockWatchlist-KickQuotes`（工作日本地 9:31 / 12:31 / 14:31，错过了会在开机登录后补跑；**需要本机已登录**，锁屏没关系、登录界面不行）调 `scripts/kick-quotes.ps1`——只在交易日盘中、且循环没在跑时才 dispatch，失败会自动重试 3 次。GitHub 定时器全体失灵时靠它。
+4. **页面自我说明**：盘中数据超 20 分钟没更新，页头显示 **"⚠ 数据延迟 N 分钟"**（橙色）；休市时间显示 **"（休市）"**——一眼分清"没开盘"和"真坏了"。休市日历硬编码到 2027 年底，之后记得在 `index.html` 里的 `MKT_HOLIDAYS` 续期。
+
+`refresh.yml`（每日趋势/PE）也加了 UTC 23:05 备份班次，主班漏发时兜底（数据没变不会重复提交）。
 
 ## 三、日常维护（怎么改）
 
@@ -80,6 +92,18 @@ git clone https://github.com/maxxibuilds/stock-watchlist
 ```
 全套（网页+数据+脚本+工作流+本手册）都在里面。**key 不用带**——它在 GitHub Secret 里，云端工作流自己用。
 
+新电脑上记得重新注册"本机保险丝"计划任务（管理员权限不需要）：
+```powershell
+$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument '-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "D:\Projects\stock-watchlist\scripts\kick-quotes.ps1"'
+$days = @("Monday","Tuesday","Wednesday","Thursday","Friday")
+$t1 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek $days -At "09:31"
+$t2 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek $days -At "12:31"
+$t3 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek $days -At "14:31"
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -RunOnlyIfNetworkAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 5) -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
+Register-ScheduledTask -TaskName "StockWatchlist-KickQuotes" -Action $action -Trigger $t1,$t2,$t3 -Settings $settings -Force
+```
+（路径按新电脑的仓库位置改；本地时区需为美东，否则把触发时间换算一下。）
+
 **方式 B**：直接把 `D:\Projects\stock-watchlist` 整个文件夹拷到 U 盘/新电脑即可（它含 `.git`，到新电脑还能继续 push）。
 
 **本地手动跑脚本测试**（可选）：先设环境变量再跑（**别把 key 写进代码/提交**）：
@@ -94,7 +118,7 @@ python -m http.server 8765    # 然后浏览器开 http://localhost:8765
 
 ## 五、常见问题 / 坑
 
-- **网页没更新？** 先 Ctrl+Shift+R 强刷；再看 `gh run list --repo maxxibuilds/stock-watchlist` 里 quotes 任务有没有在跑。GitHub 的定时器不可靠，所以 quotes 做成了“常驻循环”，必要时手动 `gh workflow run quotes.yml` 启动。
+- **网页没更新？** 先看页头：显示"（休市）"= 没开盘，正常；显示"⚠ 数据延迟"= 流水线真出问题了。这时 Ctrl+Shift+R 强刷排除缓存，再 `gh run list --repo maxxibuilds/stock-watchlist` 看 quotes 有没有在跑，没跑就 `gh workflow run quotes.yml` 手动拉起（正常情况下"自愈机制"那四层会自动处理，很少需要人管）。
 - **部署失败 / 改了不生效？** 确认 `.nojekyll` 还在（删了会触发 Jekyll 构建报错，改动静默不部署）。查 `gh api /repos/maxxibuilds/stock-watchlist/pages/builds/latest`。
 - **quotes 和 refresh 不能同时跑**：两个都用同一个 key，同时跑会超 60次/分钟限流。它们时间错开了（quotes 盘中、refresh 收盘后），手动触发时注意别撞。
 - **某只票没趋势图/PE**（如 MMC、FI）：Yahoo 抓不到它的历史，但实时价格正常。

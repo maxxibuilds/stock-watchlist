@@ -1,5 +1,5 @@
 # 本机保险丝：GitHub 定时器全体失灵时，从本机拉起 quotes 循环。
-# 由 Windows 计划任务在工作日 9:31 / 12:31（美东）调用，见 README「自愈机制」。
+# 由 Windows 计划任务在交易日盘中定时调用（注册方法见本地 LOCAL.md，不入库）。
 # 只在 交易日 + 盘中(美东 9:25–16:00) + 循环没在跑也没在排队 时才 dispatch，其余情况直接退出。
 $repo = "maxxibuilds/stock-watchlist"
 $gh = "C:\Program Files\GitHub CLI\gh.exe"
